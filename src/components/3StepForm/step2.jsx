@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Info, ChevronRight, ChevronLeft } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import JobSelectionForm from "./JobSelection";
@@ -10,6 +10,7 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
     workSchedule: "",
     jobCategories: [],
     education: "",
+    inFieldExperience: "",
     experience: "",
     expectedCtc: "",
     openToGig: true,
@@ -65,7 +66,8 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
 
   const [showGigTooltip, setShowGigTooltip] = useState(false);
   const [showFullTimeTooltip, setShowFullTimeTooltip] = useState(false);
-     const { contextFormData, setContextFormData } = useFormContext();
+  const { contextFormData, setContextFormData } = useFormContext();
+  const [selectedBlueCollarManagement, setSelectedBlueCollarManagement] = useState(false);
 
   const shouldShowCtc = () => {
     const age = parseInt(formData.age);
@@ -78,12 +80,35 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
     );
   };
 
+  // Track if Blue-Collar Management role is selected - check contextFormData.roles
+  useEffect(() => {
+    if (contextFormData.roles) {
+      const managementRoles = [
+        "Store Manager",
+        "Warehouse Supervisor", 
+        "Team Leader/Foreman",
+        "Maintenance Supervisor",
+        "Site Supervisor"
+      ];
+      const hasManagementRole = contextFormData.roles.some(role => 
+        managementRoles.includes(role)
+      );
+      setSelectedBlueCollarManagement(hasManagementRole);
+    }
+  }, [contextFormData.roles]);
+
   const isFormValid = () => {
-    return (
-      formData.age &&
-      formData.workSchedule &&
-      formData.education
-    );
+    // Basic validations
+    if (!formData.age || !formData.workSchedule || !formData.education || !formData.inFieldExperience) {
+      return false;
+    }
+
+    // If Blue-Collar Management role is selected, resume is required
+    if (selectedBlueCollarManagement && !contextFormData.resume) {
+      return false;
+    }
+
+    return true;
   };
 
   return (
@@ -134,6 +159,22 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
 
         {/* Job Categories */}
         <JobSelectionForm />
+
+        {/* In Field Experience */}
+        <div>
+          <label className="block text-sm text-slate-400 mb-2">
+            In-field Experience (in years) *
+          </label>
+          <input
+            type="number"
+            min="0"
+            max="50"
+            placeholder="Enter years of experience"
+            value={formData.inFieldExperience}
+            onChange={(e) => setFormData({ ...formData, inFieldExperience: e.target.value })}
+            className="w-full px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50"
+          />
+        </div>
 
         {/* Education */}
         <div>
@@ -303,21 +344,26 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
           </button>
 
           <button
-            onClick={() =>{
-               onNextStep(3);
-               setContextFormData((prev) => ({
-                               ...prev,
-                               fullName : formData.fullName,
-                               phoneNumber: formData.phoneNumber,
-                               phoneVerified: formData.phoneVerified,
-                               email: formData.email,
-                               emailVerified: formData.emailVerified,
-                               primaryCity: formData.primaryCity,
-                               additionalCities: formData.additionalCities,
-                               workRadius: formData.workRadius,  
-                             }
-                            ));
-               }}
+            onClick={() => {
+              // Check if resume is required but not uploaded
+              if (selectedBlueCollarManagement && !contextFormData.resume) {
+                alert("Resume is mandatory for Blue-Collar Management positions");
+                return;
+              }
+              onNextStep(3);
+              setContextFormData((prev) => ({
+                ...prev,
+                fullName: formData.fullName,
+                phoneNumber: formData.phoneNumber,
+                phoneVerified: formData.phoneVerified,
+                email: formData.email,
+                emailVerified: formData.emailVerified,
+                primaryCity: formData.primaryCity,
+                additionalCities: formData.additionalCities,
+                workRadius: formData.workRadius,
+                inFieldExperience: formData.inFieldExperience
+              }));
+            }}
             disabled={!isFormValid()}
             className="flex-1 group relative px-6 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:from-cyan-600 hover:to-blue-600 transition-all duration-200 flex items-center justify-center gap-2"
           >

@@ -381,185 +381,182 @@ const CandidateForm = ({ onFormSubmit }) => {
   const renderDocumentVerification = () => (
     <Card className="w-full max-w-2xl mx-auto bg-black/20 backdrop-blur">
       <CardContent className="p-6 space-y-6">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-slate-400 mb-2">
-              PAN Card <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              placeholder="Enter PAN Number"
-              value={formData.pan}
-              maxLength={10}
-              onChange={(e) => {
-                const panValue = e.target.value.toUpperCase();
-                if (/^[A-Z0-9]{0,10}$/.test(panValue)) {
-                  setFormData({ ...formData, pan: panValue });
-                }
-              }}
-              className="w-full p-4 bg-black/50 border border-slate-800 rounded-xl focus:border-cyan-400 transition-all"
-            />
-            {formData.pan.length > 0 && formData.pan.length !== 10 && (
-              <p className="text-red-500 mt-1 text-sm">
-                PAN must be exactly 10 characters
-              </p>
-            )}
-          </div>
-
-          {/* upload pancard */}
-          <div className="flex flex-col gap-3">
-            <p className=" text-slate-400">{"Attach your pancard here"}</p>
-
-            <input
-              type="file"
-              id="pancardUpload"
-              accept=".pdf,.doc,.docx,image/png,image/jpeg,image/jpg"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                setFormData({ ...formData, pancard: file });
-              }}
-              className="hidden"
-            />
-            {/* Styled Label as Button */}
-            <label
-              htmlFor="pancardUpload"
-              className="px-4 py-2 w-fit rounded-lg border border-slate-600 text-slate-400 hover:border-cyan-400 hover:text-cyan-400 transition-colors cursor-pointer inline-block"
-            >
-              {"Upload PAN"}
-            </label>
-
-            {/* Show File Name if Selected */}
-            {formData.pancard && (
-              <p className="text-slate-400 text-sm">
-                Selected File:{" "}
-                <span className="text-cyan-400">{formData.pancard.name}</span>
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-slate-400 mb-2">
-              Aadhar Number <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              placeholder="Enter Aadhar Number"
-              value={formData.aadhar}
-              maxLength={12}
-              onChange={(e) => {
-                const aadharValue = e.target.value.replace(/\D/g, ""); // Remove non-numeric characters
-                if (/^\d{0,12}$/.test(aadharValue)) {
-                  setFormData({ ...formData, aadhar: aadharValue });
-                }
-              }}
-              className="w-full p-4 bg-black/50 border border-slate-800 rounded-xl focus:border-cyan-400 transition-all"
-            />
-            {formData.aadhar.length > 0 && formData.aadhar.length !== 12 && (
-              <p className="text-red-500 mt-1 text-sm">
-                Aadhar must be exactly 12 digits
-              </p>
-            )}
-          </div>
-
-          {/* upload aadhar */}
-          <div className="flex flex-col gap-2">
-            <p className=" text-slate-400">
-              {"Attach your resume here"}
-              <span className=" text-cyan-400">*</span>
+        <div>
+          <label className="block text-slate-400 mb-2">
+            PAN Card <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            placeholder="Enter PAN Number"
+            value={formData.pan}
+            maxLength={10}
+            onChange={(e) => {
+              const panValue = e.target.value.toUpperCase();
+              if (/^[A-Z0-9]{0,10}$/.test(panValue)) {
+                setFormData({ ...formData, pan: panValue });
+              }
+            }}
+            className="w-full p-4 bg-black/50 border border-slate-800 rounded-xl focus:border-cyan-400 transition-all text-slate-50 placeholder-slate-500"
+          />
+          {formData.pan.length > 0 && formData.pan.length !== 10 && (
+            <p className="text-red-500 mt-1 text-sm">
+              PAN must be exactly 10 characters
             </p>
+          )}
+        </div>
 
-            <input
-              type="file"
-              id="aadharUpload"
-              accept=".pdf,.doc,.docx,image/png,image/jpeg,image/jpg"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                setFormData({ ...formData, aadharcard: file });
+        {/* upload pancard */}
+        <div className="flex flex-col gap-3">
+          <p className="text-slate-400">{"Attach your pancard here"}</p>
+          <input
+            type="file"
+            id="pancardUpload"
+            accept=".pdf,.doc,.docx,image/png,image/jpeg,image/jpg"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              setFormData({ ...formData, pancard: file });
+            }}
+            className="hidden"
+          />
+          {/* Styled Label as Button */}
+          <label
+            htmlFor="pancardUpload"
+            className="px-4 py-2 w-fit rounded-lg border border-slate-600 text-slate-400 hover:border-cyan-400 hover:text-cyan-400 transition-colors cursor-pointer inline-block"
+          >
+            {"Upload PAN"}
+          </label>
+
+          {/* Show File Name if Selected */}
+          {formData.pancard && (
+            <p className="text-slate-400 text-sm">
+              Selected File:{" "}
+              <span className="text-cyan-400">{formData.pancard.name}</span>
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-slate-400 mb-2">
+            Aadhar Number <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            placeholder="Enter Aadhar Number"
+            value={formData.aadhar}
+            maxLength={12}
+            onChange={(e) => {
+              const aadharValue = e.target.value.replace(/\D/g, ""); // Remove non-numeric characters
+              if (/^\d{0,12}$/.test(aadharValue)) {
+                setFormData({ ...formData, aadhar: aadharValue });
+              }
+            }}
+            className="w-full p-4 bg-black/50 border border-slate-800 rounded-xl focus:border-cyan-400 transition-all text-slate-50 placeholder-slate-500"
+          />
+          {formData.aadhar.length > 0 && formData.aadhar.length !== 12 && (
+            <p className="text-red-500 mt-1 text-sm">
+              Aadhar must be exactly 12 digits
+            </p>
+          )}
+        </div>
+
+        {/* upload aadhar */}
+        <div className="flex flex-col gap-2">
+          <p className=" text-slate-400">
+            {"Attach your resume here"}
+            <span className=" text-cyan-400">*</span>
+          </p>
+
+          <input
+            type="file"
+            id="aadharUpload"
+            accept=".pdf,.doc,.docx,image/png,image/jpeg,image/jpg"
+            onChange={(e) => {
+              const file = e.target.files[0];
+              setFormData({ ...formData, aadharcard: file });
+            }}
+            className="hidden"
+          />
+          {/* Styled Label as Button */}
+          <label
+            htmlFor="aadharUpload"
+            className="px-4 py-2 w-fit rounded-lg border border-slate-600 text-slate-400 hover:border-cyan-400 hover:text-cyan-400 transition-colors cursor-pointer inline-block"
+          >
+            {"Upload Aadhar"}
+          </label>
+
+          {/* Show File Name if Selected */}
+          {formData.aadharcard && (
+            <p className="text-slate-400 text-sm">
+              Selected File:{" "}
+              <span className="text-cyan-400">{formData.aadharcard.name}</span>
+            </p>
+          )}
+        </div>
+
+        <div>
+          <label className="block text-slate-400 mb-2">
+            Education <span className="text-red-500">*</span>
+          </label>
+          <select
+            value={formData.education}
+            onChange={(e) =>
+              setFormData({ ...formData, education: e.target.value })
+            }
+            className="w-full p-4 bg-black/50 border border-slate-800 rounded-xl focus:border-cyan-400 transition-all text-slate-50 placeholder-slate-500"
+          >
+            <option value="">Select Education Level</option>
+            <option value="10th">10th Pass</option>
+            <option value="12th">12th Pass</option>
+            <option value="graduate">Graduate</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <div className="flex items-center">
+          <input
+            type="checkbox"
+            id="agreeTerms"
+            name="agreeTerms"
+            checked={formData.agreeTerms}
+            onChange={(e) =>
+              setFormData({ ...formData, agreeTerms: e.target.checked })
+            }
+            className="mr-2 accent-cyan-400"
+            required
+          />
+          <label htmlFor="agreeTerms" className="text-sm text-slate-300">
+            I have read and understood the{" "}
+            <a
+              href="https://drive.google.com/file/d/1hGVi94dwjJ9C7mFgvBHk5b2IlYVT4NW7/view?usp=drive_link"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-cyan-400 hover:underline"
+              onClick={(e) => {
+                e.preventDefault();
+                window.open(
+                  "https://drive.google.com/file/d/1hGVi94dwjJ9C7mFgvBHk5b2IlYVT4NW7/view?usp=drive_link",
+                  "_blank"
+                );
               }}
-              className="hidden"
-            />
-            {/* Styled Label as Button */}
-            <label
-              htmlFor="aadharUpload"
-              className="px-4 py-2 w-fit rounded-lg border border-slate-600 text-slate-400 hover:border-cyan-400 hover:text-cyan-400 transition-colors cursor-pointer inline-block"
             >
-              {"Upload Aadhar"}
-            </label>
-
-            {/* Show File Name if Selected */}
-            {formData.aadharcard && (
-              <p className="text-slate-400 text-sm">
-                Selected File:{" "}
-                <span className="text-cyan-400">{formData.aadharcard.name}</span>
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-slate-400 mb-2">
-              Education <span className="text-red-500">*</span>
-            </label>
-            <select
-              value={formData.education}
-              onChange={(e) =>
-                setFormData({ ...formData, education: e.target.value })
-              }
-              className="w-full p-4 bg-black/50 border border-slate-800 rounded-xl focus:border-cyan-400 transition-all"
+              Terms & Conditions
+            </a>{" "}
+            and the{" "}
+            <a
+              href="https://drive.google.com/file/d/18kcW2hdO-gd8KZ2HXnD3KBIFrCiWh9Z_/view?usp=drive_link"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-cyan-400 hover:underline"
+              onClick={(e) => {
+                e.preventDefault();
+                window.open(
+                  "https://drive.google.com/file/d/18kcW2hdO-gd8KZ2HXnD3KBIFrCiWh9Z_/view?usp=drive_link",
+                  "_blank"
+                );
+              }}
             >
-              <option value="">Select Education Level</option>
-              <option value="10th">10th Pass</option>
-              <option value="12th">12th Pass</option>
-              <option value="graduate">Graduate</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              id="agreeTerms"
-              name="agreeTerms"
-              checked={formData.agreeTerms}
-              onChange={(e) =>
-                setFormData({ ...formData, agreeTerms: e.target.checked })
-              }
-              className="mr-2 accent-cyan-400"
-              required
-            />
-            <label htmlFor="agreeTerms" className="text-sm text-slate-300">
-              I have read and understood the{" "}
-              <a
-                href="https://drive.google.com/file/d/1hGVi94dwjJ9C7mFgvBHk5b2IlYVT4NW7/view?usp=drive_link"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-cyan-400 hover:underline"
-                onClick={(e) => {
-                  e.preventDefault();
-                  window.open(
-                    "https://drive.google.com/file/d/1hGVi94dwjJ9C7mFgvBHk5b2IlYVT4NW7/view?usp=drive_link",
-                    "_blank"
-                  );
-                }}
-              >
-                Terms & Conditions
-              </a>{" "}
-              and the{" "}
-              <a
-                href="https://drive.google.com/file/d/18kcW2hdO-gd8KZ2HXnD3KBIFrCiWh9Z_/view?usp=drive_link"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-cyan-400 hover:underline"
-                onClick={(e) => {
-                  e.preventDefault();
-                  window.open(
-                    "https://drive.google.com/file/d/18kcW2hdO-gd8KZ2HXnD3KBIFrCiWh9Z_/view?usp=drive_link",
-                    "_blank"
-                  );
-                }}
-              >
-                Privacy Policy
-              </a>
-            </label>
-          </div>
+              Privacy Policy
+            </a>
+          </label>
         </div>
 
         {/* Navigation */}

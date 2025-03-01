@@ -27,6 +27,7 @@ const JobSelectionForm = () => {
     role: "",
     roles: [],
     specialization: "",
+    inFieldExperience: "", // For education section field experience
     teachingLevel: [], // Changed from string to array
     subject: [], // Changed from string to array
     workSetting: [], // Changed from string to array
@@ -242,19 +243,15 @@ const JobSelectionForm = () => {
 
   const shouldShowResumeUpload = () => {
     if (selectedCategory === "blue-collar") {
-      // 🚀 Only show for Blue-Collar Management roles
-      return formData.roles.some((role) =>
-        categories[0].subcategories.management.roles.includes(role)
-      );
+      // Show for all Blue-Collar roles
+      return formData.roles.length > 0;
     }
 
     if (selectedCategory === "sales-bpo") {
-      // 🚀 Show if any Sales/BPO role is selected
       return formData.roles.length > 0;
     }
 
     if (selectedCategory === "education") {
-      // 🚀 Show if any teaching level, subject, or work setting is selected
       return (
         formData.teachingLevel.length > 0 ||
         formData.subject.length > 0 ||
@@ -262,6 +259,19 @@ const JobSelectionForm = () => {
       );
     }
 
+    return false;
+  };
+
+  const isResumeRequired = () => {
+    // Required for Blue-Collar Management roles and all Sales, BPO & Marketing roles
+    if (selectedCategory === "blue-collar") {
+      return formData.roles.some((role) =>
+        categories[0].subcategories.management.roles.includes(role)
+      );
+    }
+    if (selectedCategory === "sales-bpo") {
+      return formData.roles.length > 0;
+    }
     return false;
   };
 
@@ -281,14 +291,22 @@ const JobSelectionForm = () => {
               {filterRoles(subcategory.roles).map((role) => (
                 <button
                   key={role}
-                  onClick={() =>
-                    setFormData((prevData) => ({
-                      ...prevData,
-                      roles: prevData.roles.includes(role)
-                        ? prevData.roles.filter((r) => r !== role) // Remove if already selected
-                        : [...prevData.roles, role], // Add if not selected
-                    }))
-                  }
+              onClick={() => {
+                const newRoles = formData.roles.includes(role)
+                  ? formData.roles.filter((r) => r !== role) // Remove if already selected
+                  : [...formData.roles, role]; // Add if not selected
+                
+                setFormData((prevData) => ({
+                  ...prevData,
+                  roles: newRoles
+                }));
+
+                // Update context
+                setContextFormData(prev => ({
+                  ...prev,
+                  roles: newRoles
+                }));
+              }}
                   className={`p-4 rounded-lg border ${
                     formData.roles.includes(role)
                       ? "border-cyan-400 text-cyan-400 bg-slate-800"
@@ -363,6 +381,45 @@ const JobSelectionForm = () => {
   const renderEducation = () => (
     <div className="space-y-6 ">
       <div className="space-y-4">
+        {/* In Field Experience */}
+        <div>
+          <label className="block text-slate-300 mb-2">
+            Do you have in-field experience?
+          </label>
+          <RadioGroup
+            onValueChange={(value) => {
+              setFormData({ ...formData, inFieldExperience: value });
+              setContextFormData((prev) => ({
+                ...prev,
+                inFieldExperience: value
+              }))
+            }}
+            value={formData.inFieldExperience}
+            className="space-y-2"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem
+                value="yes"
+                id="exp-yes"
+                className="border-slate-600 data-[state=checked]:bg-cyan-400 data-[state=checked]:border-cyan-400"
+              />
+              <label htmlFor="exp-yes" className="text-slate-400">
+                Yes
+              </label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem
+                value="no"
+                id="exp-no"
+                className="border-slate-600 data-[state=checked]:bg-cyan-400 data-[state=checked]:border-cyan-400"
+              />
+              <label htmlFor="exp-no" className="text-slate-400">
+                No
+              </label>
+            </div>
+          </RadioGroup>
+        </div>
+
         {/* Teaching Level Multi-Select */}
         <div>
           <label className="block text-slate-300 mb-2">Teaching Level</label>
@@ -588,9 +645,26 @@ const JobSelectionForm = () => {
 
       {shouldShowResumeUpload() && (
         <div className="flex flex-col gap-2">
-          <p className="text-slate-400">
-            Attach your resume here <span className="text-cyan-400">*</span>
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-slate-400">
+              Attach your resume here
+              {isResumeRequired() && <span className="text-cyan-400 ml-1">*</span>}
+              {!isResumeRequired() && <span className="text-slate-500 text-sm ml-2">(Optional)</span>}
+            </p>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Info className="w-4 h-4 text-slate-400" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{isResumeRequired() 
+                    ? "Resume is required for Blue-Collar Management positions and all Sales, BPO & Marketing roles" 
+                    : "Resume is optional but recommended for better job matching"}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <input
             type="file"
             id="resumeUpload"
@@ -606,20 +680,18 @@ const JobSelectionForm = () => {
             }}
             className="hidden"
           />
-          {/* Styled Label as Button */}
           <label
             htmlFor="resumeUpload"
             className="px-4 py-2 w-fit rounded-lg border border-slate-600 text-slate-400 hover:border-cyan-400 hover:text-cyan-400 transition-colors cursor-pointer inline-block"
           >
-            Upload Resume {/* 🚀 this is unchanged */}
+            Upload Resume
           </label>
-          {/* Show File Name if Selected */}
           {formData.resume && (
             <p className="text-slate-400 text-sm">
               Selected File:{" "}
               <span className="text-cyan-400">{formData.resume.name}</span>
             </p>
-          )}{" "}
+          )}
         </div>
       )}
     </div>
