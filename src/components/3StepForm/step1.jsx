@@ -19,6 +19,7 @@ const RegistrationStep1 = ({ onNextStep }) => {
     primaryCity: "",
     additionalCities: [],
     workRadius: "5",
+    pincode: "",
   });
 
   // Add validation states
@@ -296,6 +297,23 @@ const RegistrationStep1 = ({ onNextStep }) => {
               )}
             </div>
           </div>
+          
+          {/* Pincode Input */}
+          <div className="mt-2">
+            <input
+              type="text"
+              placeholder="Enter Pincode"
+              maxLength={6}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "" || /^\d*$/.test(value)) {
+                  // Only update if empty or contains only digits
+                  setFormData({ ...formData, pincode: value });
+                }
+              }}
+              className="w-full px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50 placeholder-slate-500"
+            />
+          </div>
         </div>
 
         {/* Work Radius */}
@@ -326,6 +344,7 @@ const RegistrationStep1 = ({ onNextStep }) => {
             <option value="10">Within 10 KM</option>
             <option value="15">Within 15 KM</option>
             <option value="20">Within 20 KM</option>
+            <option value="relocate">Open to Relocate</option>
           </select>
         </div>
 
@@ -342,7 +361,8 @@ const RegistrationStep1 = ({ onNextStep }) => {
                 emailVerified: formData.emailVerified,
                 primaryCity: formData.primaryCity,
                 additionalCities: formData.additionalCities,
-                workRadius: formData.workRadius,  
+                workRadius: formData.workRadius,
+                pincode: formData.pincode,
               }
              ))
           }}

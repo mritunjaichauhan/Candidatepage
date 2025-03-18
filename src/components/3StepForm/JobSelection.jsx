@@ -109,32 +109,48 @@ const JobSelectionForm = () => {
     {
       id: "sales-bpo",
       title: "Sales, BPO & Marketing",
-      info: "Retail, field sales, call centers, digital marketing, support",
+      info: "Insurance, financial sales, payment collection, business development, marketing and customer engagement",
       subcategories: {
-        retail: {
-          title: "Retail & In-Store Sales",
-          roles: ["Retail Sales", "Jewelry Sales", "Real Estate Sales"],
-        },
-        field: {
-          title: "Field & Outside Sales",
-          roles: ["Field Sales"],
-        },
-        digital: {
-          title: "Digital & Social Marketing",
+        "insurance-finance": {
+          title: "Insurance & Financial Sales",
           roles: [
-            "Social Media Administrator",
-            "Graphic Designer",
-            "Video Editor/Motion Graphics Editor",
-          ],
+            "Insurance Sales Representative",
+            "Financial Services Consultant",
+            "Claims and Underwriting Specialist"
+          ]
         },
-        support: {
-          title: "Customer Support",
+        "collections": {
+          title: "Payment Collection & Recovery",
           roles: [
-            "Call Center/Customer Support",
-            "BPO Representative",
-            "Data Entry Operator",
-          ],
+            "Collection Agent",
+            "Loan Recovery Officer",
+            "Credit and Verification Officer"
+          ]
         },
+        "direct-sales": {
+          title: "Direct & Channel Sales",
+          roles: [
+            "Direct Sales Executive",
+            "Channel Sales Manager",
+            "Retail Sales Associate"
+          ]
+        },
+        "business-dev": {
+          title: "Business Development & Territory",
+          roles: [
+            "Territory Sales Manager",
+            "Business Development Executive",
+            "Field Sales Trainer"
+          ]
+        },
+        "marketing": {
+          title: "Marketing & Customer Engagement",
+          roles: [
+            "Field Marketing Executive",
+            "Customer Relationship Manager",
+            "Sales Operations Manager"
+          ]
+        }
       },
     },
     {
@@ -177,6 +193,40 @@ const JobSelectionForm = () => {
         "IT/Computer Instructor",
       ],
     },
+    {
+      id: "healthcare",
+      title: "Healthcare",
+      info: "Medical support, patient care, healthcare assistance",
+      subcategories: {
+        "patient-care": {
+          title: "Patient Care",
+          roles: [
+            "Nursing Assistant",
+            "Patient Care Attendant",
+            "Home Health Aide",
+            "Elderly Care Worker"
+          ]
+        },
+        "medical-support": {
+          title: "Medical Support",
+          roles: [
+            "Medical Lab Assistant",
+            "Pharmacy Assistant",
+            "Medical Equipment Technician",
+            "Hospital Ward Assistant"
+          ]
+        },
+        "wellness": {
+          title: "Wellness & Alternative Care",
+          roles: [
+            "Massage Therapist",
+            "Physiotherapy Assistant",
+            "Yoga Instructor",
+            "Wellness Coach"
+          ]
+        }
+      }
+    }
   ];
 
   // For step 2 education & training select
@@ -259,6 +309,10 @@ const JobSelectionForm = () => {
       );
     }
 
+    if (selectedCategory === "healthcare") {
+      return formData.roles.length > 0;  // Show for all healthcare roles
+    }
+
     return false;
   };
 
@@ -271,6 +325,9 @@ const JobSelectionForm = () => {
     }
     if (selectedCategory === "sales-bpo") {
       return formData.roles.length > 0;
+    }
+    if (selectedCategory === "healthcare") {
+      return true; // Resume is required for all healthcare roles
     }
     return false;
   };
@@ -337,6 +394,55 @@ const JobSelectionForm = () => {
         </h3>
         <Accordion type="single" collapsible className="w-full space-y-4 py-2">
           {Object.entries(categories[1].subcategories).map(
+            ([key, subcategory]) => (
+              <AccordionItem
+                key={key}
+                value={key}
+                className="border border-slate-700 rounded-lg"
+              >
+                <AccordionTrigger className="px-4 py-2 text-slate-400 hover:bg-slate-800">
+                  {subcategory.title}
+                </AccordionTrigger>
+                <AccordionContent className="px-4 py-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {filterRoles(subcategory.roles).map((role) => (
+                      <button
+                        key={role}
+                        onClick={() =>
+                          setFormData((prevData) => ({
+                            ...prevData,
+                            roles: prevData.roles.includes(role)
+                              ? prevData.roles.filter((r) => r !== role)
+                              : [...prevData.roles, role],
+                          }))
+                        }
+                        className={`p-4 rounded-lg border ${
+                          formData.roles.includes(role)
+                            ? "border-cyan-400 text-cyan-400"
+                            : "border-slate-700 text-slate-400"
+                        } hover:border-cyan-400 transition-all`}
+                      >
+                        {role}
+                      </button>
+                    ))}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            )
+          )}
+        </Accordion>
+      </div>
+    </div>
+  );
+
+  const renderHealthcare = () => (
+    <div className="space-y-6">
+      <div className="space-y-4">
+        <h3 className="text-lg font-medium text-slate-200">
+          Select your healthcare role
+        </h3>
+        <Accordion type="single" collapsible className="w-full space-y-4 py-2">
+          {Object.entries(categories[3].subcategories).map(
             ([key, subcategory]) => (
               <AccordionItem
                 key={key}
@@ -609,7 +715,7 @@ const JobSelectionForm = () => {
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         {categories.map((category) => (
           <button
             key={category.id}
@@ -640,6 +746,7 @@ const JobSelectionForm = () => {
           {selectedCategory === "blue-collar" && renderBlueCollarJobs()}
           {selectedCategory === "sales-bpo" && renderSalesBPO()}
           {selectedCategory === "education" && renderEducation()}
+          {selectedCategory === "healthcare" && renderHealthcare()}
         </div>
       )}
 
@@ -658,7 +765,7 @@ const JobSelectionForm = () => {
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>{isResumeRequired() 
-                    ? "Resume is required for Blue-Collar Management positions and all Sales, BPO & Marketing roles" 
+                    ? "Resume is required for Blue-Collar Management positions, Sales & Marketing roles, and all Healthcare positions" 
                     : "Resume is optional but recommended for better job matching"}
                   </p>
                 </TooltipContent>

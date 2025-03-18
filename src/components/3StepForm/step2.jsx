@@ -18,6 +18,8 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
     pastRoles: [],
     hasLicense: false,
     licenseTypes: [],
+    additionalVehicle: "",
+    additionalVehicleType: "",
   });
 
   // Common blue collar job categories
@@ -47,6 +49,12 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
     { id: "two_wheeler", label: "Two Wheeler" },
     { id: "four_wheeler", label: "Four Wheeler" },
     { id: "commercial", label: "Commercial Vehicle" },
+  ];
+
+  const vehicleTypes = [
+    { id: "two_wheeler", label: "Two Wheeler" },
+    { id: "three_wheeler", label: "Three Wheeler" },
+    { id: "four_wheeler", label: "Four Wheeler" },
   ];
 
   const pastRolesList = [
@@ -310,25 +318,77 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
           </label>
 
           {formData.hasLicense && (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {licenseTypes.map((license) => (
-                <button
-                  key={license.id}
-                  onClick={() => {
-                    const updated = formData.licenseTypes.includes(license.id)
-                      ? formData.licenseTypes.filter((l) => l !== license.id)
-                      : [...formData.licenseTypes, license.id];
-                    setFormData({ ...formData, licenseTypes: updated });
-                  }}
-                  className={`p-3 rounded-lg border ${
-                    formData.licenseTypes.includes(license.id)
-                      ? "border-cyan-400 text-cyan-400"
-                      : "border-slate-800 text-slate-400"
-                  } hover:border-cyan-400 transition-all text-sm`}
-                >
-                  {license.label}
-                </button>
-              ))}
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                {licenseTypes.map((license) => (
+                  <button
+                    key={license.id}
+                    onClick={() => {
+                      const updated = formData.licenseTypes.includes(license.id)
+                        ? formData.licenseTypes.filter((l) => l !== license.id)
+                        : [...formData.licenseTypes, license.id];
+                      setFormData({ 
+                        ...formData, 
+                        licenseTypes: updated,
+                        // Reset additional vehicle fields if commercial is deselected
+                        ...(license.id === 'commercial' && formData.licenseTypes.includes('commercial') 
+                          ? { additionalVehicle: '', additionalVehicleType: '' }
+                          : {})
+                      });
+                    }}
+                    className={`p-3 rounded-lg border ${
+                      formData.licenseTypes.includes(license.id)
+                        ? "border-cyan-400 text-cyan-400"
+                        : "border-slate-800 text-slate-400"
+                    } hover:border-cyan-400 transition-all text-sm`}
+                  >
+                    {license.label}
+                  </button>
+                ))}
+              </div>
+
+              {formData.licenseTypes.includes('commercial') && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-2">
+                      Do you have another vehicle?
+                    </label>
+                    <select
+                      value={formData.additionalVehicle}
+                      onChange={(e) =>
+                        setFormData({ ...formData, additionalVehicle: e.target.value })
+                      }
+                      className="w-full px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50"
+                    >
+                      <option value="">Select Yes/No</option>
+                      <option value="yes">Yes</option>
+                      <option value="no">No</option>
+                    </select>
+                  </div>
+
+                  {formData.additionalVehicle === 'yes' && (
+                    <div>
+                      <label className="block text-sm text-slate-400 mb-2">
+                        Select Vehicle Type
+                      </label>
+                      <select
+                        value={formData.additionalVehicleType}
+                        onChange={(e) =>
+                          setFormData({ ...formData, additionalVehicleType: e.target.value })
+                        }
+                        className="w-full px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50"
+                      >
+                        <option value="">Select Vehicle Type</option>
+                        {vehicleTypes.map((type) => (
+                          <option key={type.id} value={type.id}>
+                            {type.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
