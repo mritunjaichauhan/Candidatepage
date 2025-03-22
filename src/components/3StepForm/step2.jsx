@@ -20,6 +20,7 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
     licenseTypes: [],
     additionalVehicle: "",
     additionalVehicleType: "",
+    ageError: "", // Add ageError to state
   });
 
   // Common blue collar job categories
@@ -107,7 +108,7 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
 
   const isFormValid = () => {
     // Basic validations
-    if (!formData.age || !formData.workSchedule || !formData.education || !formData.inFieldExperience) {
+    if (!formData.age || !formData.workSchedule || !formData.education || !formData.inFieldExperience || formData.ageError) {
       return false;
     }
 
@@ -128,12 +129,32 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
           <input
             type="number"
             min="18"
-            max="65"
+            max="70"
             placeholder="Enter your age"
             value={formData.age}
-            onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-            className="w-full px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50"
+            onChange={(e) => {
+              const age = parseInt(e.target.value);
+              if (age < 18 || age > 70) {
+                setFormData({ 
+                  ...formData, 
+                  age: e.target.value,
+                  ageError: "Age must be between 18 and 70 years"
+                });
+              } else {
+                setFormData({ 
+                  ...formData, 
+                  age: e.target.value,
+                  ageError: ""
+                });
+              }
+            }}
+            className={`w-full px-4 py-3 bg-black/50 border ${
+              formData.ageError ? 'border-red-500' : 'border-slate-800'
+            } rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50`}
           />
+          {formData.ageError && (
+            <p className="text-red-500 text-sm mt-1">{formData.ageError}</p>
+          )}
         </div>
 
         {/* Work Schedule */}
@@ -245,32 +266,6 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
             )}
           </div>
         )}
-
-        {/* <div className="flex items-center gap-3 text-slate-400">
-    <span>Is this WhatsApp number also your calling number?</span>
-    <label className="flex items-center gap-1 cursor-pointer">
-      <input
-        type="radio"
-        name="sameNumber"
-        value="yes"
-        checked={isSameNumber}
-        onChange={() => setIsSameNumber(true)}
-        className="accent-cyan-400"
-      />
-      Yes
-    </label>
-    <label className="flex items-center gap-1 cursor-pointer">
-      <input
-        type="radio"
-        name="sameNumber"
-        value="no"
-        checked={!isSameNumber}
-        onChange={() => setIsSameNumber(false)}
-        className="accent-cyan-400"
-      />
-      No
-    </label>
-  </div> */}
 
         {/* Job Preferences */}
         <div className="space-y-3">
