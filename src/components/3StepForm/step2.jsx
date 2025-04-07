@@ -20,6 +20,7 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
     licenseTypes: [],
     additionalVehicle: "",
     additionalVehicleType: "",
+    commercialVehicleType: "", // Add commercial vehicle type
     ageError: "", // Add ageError to state
   });
 
@@ -39,6 +40,19 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
     { id: "housekeeping", label: "Housekeeping", icon: "🧹" },
   ];
 
+  const commercialVehicleTypes = [
+    { id: "tipper", label: "Tipper" },
+    { id: "truck", label: "Truck" },
+    { id: "trailer_truck", label: "Trailer Truck" },
+    { id: "mini_truck", label: "Mini Truck" },
+    { id: "pickup_van", label: "Pickup Van" },
+    { id: "transit_mixer", label: "Transit Mixer" },
+    { id: "bus", label: "Bus" },
+    { id: "tanker", label: "Tanker" },
+    { id: "container_truck", label: "Container Truck" },
+    { id: "dumper", label: "Dumper" }
+  ];
+
   const workSchedules = [
     { id: "fulltime_weekday", label: "Weekdays (Full Time)" },
     { id: "parttime_weekday", label: "Weekdays (Part Time)" },
@@ -48,6 +62,7 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
 
   const licenseTypes = [
     { id: "two_wheeler", label: "Two Wheeler" },
+    { id: "three_wheeler", label: "Three Wheeler" },
     { id: "four_wheeler", label: "Four Wheeler" },
     { id: "commercial", label: "Commercial Vehicle" },
   ];
@@ -117,6 +132,11 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
       return false;
     }
 
+    // If commercial vehicle is selected, require commercial vehicle type
+    if (formData.licenseTypes.includes('commercial') && !formData.commercialVehicleType) {
+      return false;
+    }
+
     return true;
   };
 
@@ -160,7 +180,7 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
         {/* Work Schedule */}
         <div>
           <label className="block text-sm text-slate-400 mb-2">
-            Work Schedule *
+            Availability *
           </label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {workSchedules.map((schedule) => (
@@ -325,9 +345,13 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
                       setFormData({ 
                         ...formData, 
                         licenseTypes: updated,
-                        // Reset additional vehicle fields if commercial is deselected
+                        // Reset commercial and additional vehicle fields if commercial is deselected
                         ...(license.id === 'commercial' && formData.licenseTypes.includes('commercial') 
-                          ? { additionalVehicle: '', additionalVehicleType: '' }
+                          ? { 
+                              additionalVehicle: '', 
+                              additionalVehicleType: '',
+                              commercialVehicleType: '' 
+                            }
                           : {})
                       });
                     }}
@@ -344,6 +368,26 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
 
               {formData.licenseTypes.includes('commercial') && (
                 <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm text-slate-400 mb-2">
+                      Commercial Vehicle Type *
+                    </label>
+                    <select
+                      value={formData.commercialVehicleType}
+                      onChange={(e) =>
+                        setFormData({ ...formData, commercialVehicleType: e.target.value })
+                      }
+                      className="w-full px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50"
+                    >
+                      <option value="">Select Commercial Vehicle Type</option>
+                      {commercialVehicleTypes.map((type) => (
+                        <option key={type.id} value={type.id}>
+                          {type.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   <div>
                     <label className="block text-sm text-slate-400 mb-2">
                       Do you have another vehicle?

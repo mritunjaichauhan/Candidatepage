@@ -14,7 +14,6 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
-import LocalStatsSection from "../Language/localStatsSection";
 
 export const ParticleCanvas = () => {
   useEffect(() => {
@@ -112,73 +111,29 @@ const IntroAnimation = ({ onComplete }) => {
   const [currentScene, setCurrentScene] = useState(0);
 
   const [isPlaying, setIsPlaying] = useState(true);
-
-  const [language, setLanguage] = useState("english");
-
   const content = {
-    english: {
-      welcome: "Find Your Next Job",
-
-      subtitle: "Close to Home • Quick Start • Better Future",
-
-      process: "Simple 3-Step Process",
-
-      steps: [
-        {
-          title: "Share Basic Details",
-          desc: "2-minute registration",
-          icon: PhoneCall,
-        },
-
-        {
-          title: "Get Instant Matches",
-          desc: "Jobs near your location",
-          icon: MapPin,
-        },
-
-        { title: "Start Working", desc: "Within 48 hours", icon: BadgeCheck },
-      ],
-
-      benefits: [
-        { title: "Jobs Near You", value: "5-10 km", icon: MapPin },
-
-        { title: "Quick Start", value: "48 Hours", icon: Clock },
-
-        { title: "Better Salary", value: "Up to ₹4 LPA", icon: Star },
-      ],
-
-      cta: "Start Your Journey",
-    },
-
-    hindi: {
-      welcome: "अपनी अगली नौकरी खोजें",
-
-      subtitle: "घर के पास • तुरंत शुरू • बेहतर भविष्य",
-
-      process: "सरल 3-चरण प्रक्रिया",
-
-      steps: [
-        {
-          title: "जानकारी साझा करें",
-          desc: "2 मिनट का पंजीकरण",
-          icon: PhoneCall,
-        },
-
-        { title: "तुरंत मैच पाएं", desc: "आपके पास की नौकरियां", icon: MapPin },
-
-        { title: "काम शुरू करें", desc: "48 घंटों के भीतर", icon: BadgeCheck },
-      ],
-
-      benefits: [
-        { title: "पास की नौकरियां", value: "5-10 किमी", icon: MapPin },
-
-        { title: "जल्द शुरुआत", value: "48 घंटे", icon: Clock },
-
-        { title: "बेहतर वेतन", value: "₹4 LPA तक", icon: Star },
-      ],
-
-      cta: "यात्रा शुरू करें",
-    },
+    welcome: "Find Your Next Job",
+    subtitle: "Close to Home • Quick Start • Better Future",
+    process: "Simple 3-Step Process",
+    steps: [
+      {
+        title: "Share Basic Details",
+        desc: "2-minute registration",
+        icon: PhoneCall,
+      },
+      {
+        title: "Get Instant Matches",
+        desc: "Jobs near your location",
+        icon: MapPin,
+      },
+      { title: "Start Working", desc: "Within 48 hours", icon: BadgeCheck },
+    ],
+    benefits: [
+      { title: "Jobs Near You", value: "5-10 km", icon: MapPin },
+      { title: "Quick Start", value: "48 Hours", icon: Clock },
+      { title: "Better Salary", value: "Up to ₹4 LPA", icon: Star },
+    ],
+    cta: "Start Your Journey",
   };
 
   const ProcessStep = ({ step, index, current }) => (
@@ -223,7 +178,7 @@ const IntroAnimation = ({ onComplete }) => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            {content[language].welcome}
+            {content.welcome}
           </motion.h1>
 
           <motion.p
@@ -232,7 +187,7 @@ const IntroAnimation = ({ onComplete }) => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
           >
-            {content[language].subtitle}
+            {content.subtitle}
           </motion.p>
         </motion.div>
       ),
@@ -243,11 +198,11 @@ const IntroAnimation = ({ onComplete }) => {
       content: (
         <motion.div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-bold text-center mb-12 bg-gradient-to-r from-cyan-400 to-violet-500 text-transparent bg-clip-text">
-            {content[language].process}
+            {content.process}
           </h2>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {content[language].steps.map((step, index) => (
+            {content.steps.map((step, index) => (
               <ProcessStep key={index} step={step} index={index} />
             ))}
           </div>
@@ -260,7 +215,7 @@ const IntroAnimation = ({ onComplete }) => {
       content: (
         <motion.div className="max-w-4xl mx-auto">
           <div className="grid md:grid-cols-3 gap-8">
-            {content[language].benefits.map((benefit, index) => (
+            {content.benefits.map((benefit, index) => (
               <motion.div
                 key={index}
                 className="relative group"
@@ -285,14 +240,6 @@ const IntroAnimation = ({ onComplete }) => {
       ),
     },
 
-    // Language selection scene
-    {
-      content: (
-        <motion.div className="flex bg-black/40  justify-end mb-8">
-          <LocalStatsSection />
-        </motion.div>
-      ),
-    },
     // CTA Scene
     {
       content: (
@@ -307,7 +254,7 @@ const IntroAnimation = ({ onComplete }) => {
             <div className="absolute inset-0.5 bg-black rounded-xl"></div>
 
             <span className="relative z-10 flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-400 via-violet-500 to-amber-400 text-transparent bg-clip-text">
-              {content[language].cta}
+              {content.cta}
 
               <ExternalLink className="w-5 h-5 text-cyan-400" />
             </span>
@@ -389,18 +336,6 @@ const IntroAnimation = ({ onComplete }) => {
       >
         <ChevronRight className="w-6 h-6 text-white group-hover:scale-110 transition-transform" />
       </motion.button>
-
-      {/* Language Selector */}
-
-      <select
-        value={language}
-        onChange={(e) => setLanguage(e.target.value)}
-        className="fixed top-4 right-4 z-50 bg-black/50 backdrop-blur-xl border border-slate-800 rounded-lg px-4 py-2 text-slate-300"
-      >
-        <option value="english">English</option>
-
-        <option value="hindi">हिंदी</option>
-      </select>
 
       {/* Main Content */}
 

@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { MapPin, Info, ChevronRight, AlertCircle } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { useFormContext } from "@/ContextProvider/FormProvider";
+"use client"
+
+import { useState } from "react"
+import { MapPin, Info, ChevronRight, AlertCircle } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { useFormContext } from "@/ContextProvider/FormProvider"
 
 // Commented out as it would need to be implemented based on your Google Maps API setup
 /*
@@ -20,84 +22,85 @@ const RegistrationStep1 = ({ onNextStep }) => {
     additionalCities: [],
     workRadius: "5",
     pincode: "",
-  });
+    openToRelocate: false,
+  })
 
   // Add validation states
-  const [phoneError, setPhoneError] = useState("");
-  const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("")
+  const [emailError, setEmailError] = useState("")
 
-  const [showPhoneOtp, setShowPhoneOtp] = useState(false);
-  const [showEmailOtp, setShowEmailOtp] = useState(false);
-  const [showCityTooltip, setShowCityTooltip] = useState(false);
-  const [showRadiusTooltip, setShowRadiusTooltip] = useState(false);
-  const { contextFormData, setContextFormData } = useFormContext();
+  const [showPhoneOtp, setShowPhoneOtp] = useState(false)
+  const [showEmailOtp, setShowEmailOtp] = useState(false)
+  const [showCityTooltip, setShowCityTooltip] = useState(false)
+  const [showRadiusTooltip, setShowRadiusTooltip] = useState(false)
+  const { contextFormData, setContextFormData } = useFormContext()
 
-  const [isSameNumber, setIsSameNumber] = useState(true); // check if WhatsApp number is same as calling number
+  const [isSameNumber, setIsSameNumber] = useState(true) // check if WhatsApp number is same as calling number
 
   const handleVerifyPhone = () => {
-    setShowPhoneOtp(true);
+    setShowPhoneOtp(true)
     // Implement WhatsApp OTP verification logic
-  };
+  }
 
   const handleVerifyEmail = () => {
     if (validateEmail()) {
-      setShowEmailOtp(true);
+      setShowEmailOtp(true)
       // Implement email OTP verification logic
     }
-  };
+  }
 
   // Handle phone number input with validation
   const handlePhoneNumberChange = (e) => {
-    const value = e.target.value;
+    const value = e.target.value
 
     // Only accept numeric input
     if (value && !/^\d*$/.test(value)) {
-      setPhoneError("Only numbers are allowed");
-      return;
+      setPhoneError("Only numbers are allowed")
+      return
     }
 
     // Limit to 10 digits
     if (value.length > 10) {
-      setPhoneError("Phone number should be 10 digits");
-      return;
+      setPhoneError("Phone number should be 10 digits")
+      return
     }
 
-    setPhoneError("");
-    setFormData({ ...formData, phoneNumber: value });
-  };
+    setPhoneError("")
+    setFormData({ ...formData, phoneNumber: value })
+  }
 
   // Validate phone on blur
   const validatePhone = () => {
     if (formData.phoneNumber && formData.phoneNumber.length !== 10) {
-      setPhoneError("Phone number must be exactly 10 digits");
+      setPhoneError("Phone number must be exactly 10 digits")
     } else {
-      setPhoneError("");
+      setPhoneError("")
     }
-  };
+  }
 
   // Email validation function
   const validateEmail = () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!formData.email) {
-      setEmailError("Email is required");
-      return false;
+      setEmailError("Email is required")
+      return false
     } else if (!emailRegex.test(formData.email)) {
-      setEmailError("Please enter a valid email address");
-      return false;
+      setEmailError("Please enter a valid email address")
+      return false
     } else {
-      setEmailError("");
-      return true;
+      setEmailError("")
+      return true
     }
-  };
+  }
 
   // Handle email input with validation
   const handleEmailChange = (e) => {
-    const value = e.target.value;
-    setFormData({ ...formData, email: value });
-    
+    const value = e.target.value
+    setFormData({ ...formData, email: value })
+
     // Clear error when typing
-    if (emailError) setEmailError("");
-  };
+    if (emailError) setEmailError("")
+  }
 
   const isFormValid = () => {
     return (
@@ -111,8 +114,8 @@ const RegistrationStep1 = ({ onNextStep }) => {
       // formData.emailVerified &&
       formData.primaryCity &&
       formData.workRadius
-    );
-  };
+    )
+  }
 
   return (
     <Card className="w-full max-w-2xl mx-auto bg-black/20 backdrop-blur">
@@ -123,9 +126,7 @@ const RegistrationStep1 = ({ onNextStep }) => {
             type="text"
             placeholder="Full Name *"
             value={formData.fullName}
-            onChange={(e) =>
-              setFormData({ ...formData, fullName: e.target.value })
-            }
+            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
             className="w-full px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50 placeholder-slate-500"
           />
         </div>
@@ -162,11 +163,23 @@ const RegistrationStep1 = ({ onNextStep }) => {
             </button>
           </div>
           {showPhoneOtp && (
-            <input
-              type="text"
-              placeholder="Enter OTP"
-              className="w-full px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50 placeholder-slate-500"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Enter OTP"
+                className="flex-1 px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50 placeholder-slate-500"
+              />
+              <button
+                onClick={() => {
+                  // Handle OTP verification logic here
+                  setFormData({ ...formData, phoneVerified: true })
+                  setShowPhoneOtp(false)
+                }}
+                className="px-4 py-2 rounded-lg border border-slate-600 text-slate-400 hover:border-cyan-400 hover:text-cyan-400 transition-colors"
+              >
+                Submit
+              </button>
+            </div>
           )}
         </div>
 
@@ -205,10 +218,10 @@ const RegistrationStep1 = ({ onNextStep }) => {
               placeholder="Calling Number *"
               value={formData.callingNumber || ""}
               onChange={(e) => {
-                const value = e.target.value;
+                const value = e.target.value
                 // Only accept numeric input and limit to 10 digits
                 if (value === "" || (value.length <= 10 && /^\d*$/.test(value))) {
-                  setFormData({ ...formData, callingNumber: value });
+                  setFormData({ ...formData, callingNumber: value })
                 }
               }}
               maxLength={10}
@@ -249,11 +262,23 @@ const RegistrationStep1 = ({ onNextStep }) => {
             </button>
           </div>
           {showEmailOtp && (
-            <input
-              type="text"
-              placeholder="Enter OTP"
-              className="w-full px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50 placeholder-slate-500"
-            />
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="Enter OTP"
+                className="flex-1 px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50 placeholder-slate-500"
+              />
+              <button
+                onClick={() => {
+                  // Handle email OTP verification logic here
+                  setFormData({ ...formData, emailVerified: true })
+                  setShowEmailOtp(false)
+                }}
+                className="px-4 py-2 rounded-lg border border-slate-600 text-slate-400 hover:border-cyan-400 hover:text-cyan-400 transition-colors"
+              >
+                Submit
+              </button>
+            </div>
           )}
         </div>
 
@@ -264,9 +289,7 @@ const RegistrationStep1 = ({ onNextStep }) => {
               type="text"
               placeholder="Select Your City *"
               value={formData.primaryCity}
-              onChange={(e) =>
-                setFormData({ ...formData, primaryCity: e.target.value })
-              }
+              onChange={(e) => setFormData({ ...formData, primaryCity: e.target.value })}
               className="w-full px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50 placeholder-slate-500 pr-12"
             />
             <MapPin className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-500" />
@@ -297,7 +320,7 @@ const RegistrationStep1 = ({ onNextStep }) => {
               )}
             </div>
           </div>
-          
+
           {/* Pincode Input */}
           <div className="mt-2">
             <input
@@ -305,10 +328,10 @@ const RegistrationStep1 = ({ onNextStep }) => {
               placeholder="Enter Pincode"
               maxLength={6}
               onChange={(e) => {
-                const value = e.target.value;
+                const value = e.target.value
                 if (value === "" || /^\d*$/.test(value)) {
                   // Only update if empty or contains only digits
-                  setFormData({ ...formData, pincode: value });
+                  setFormData({ ...formData, pincode: value })
                 }
               }}
               className="w-full px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50 placeholder-slate-500"
@@ -335,38 +358,48 @@ const RegistrationStep1 = ({ onNextStep }) => {
           </div>
           <select
             value={formData.workRadius}
-            onChange={(e) =>
-              setFormData({ ...formData, workRadius: e.target.value })
-            }
+            onChange={(e) => setFormData({ ...formData, workRadius: e.target.value })}
             className="w-full px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50"
           >
             <option value="5">Within 5 KM</option>
             <option value="10">Within 10 KM</option>
             <option value="15">Within 15 KM</option>
             <option value="20">Within 20 KM</option>
-            <option value="relocate">Open to Relocate</option>
           </select>
+        </div>
+
+        {/* Open to Relocate Checkbox */}
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="relocate"
+            checked={formData.openToRelocate}
+            onChange={(e) => setFormData({ ...formData, openToRelocate: e.target.checked })}
+            className="w-4 h-4 accent-cyan-400 bg-black/50 border-slate-800 rounded focus:ring-cyan-400"
+          />
+          <label htmlFor="relocate" className="text-slate-400">
+            Open to Relocate
+          </label>
         </div>
 
         {/* Continue Button */}
         <button
-          onClick={() =>{
-            onNextStep(2);
+          onClick={() => {
+            onNextStep(2)
             setContextFormData((prev) => ({
-                ...prev,
-                fullName : formData.fullName,
-                phoneNumber: formData.phoneNumber,
-                phoneVerified: formData.phoneVerified,
-                email: formData.email,
-                emailVerified: formData.emailVerified,
-                primaryCity: formData.primaryCity,
-                additionalCities: formData.additionalCities,
-                workRadius: formData.workRadius,
-                pincode: formData.pincode,
-              }
-             ))
+              ...prev,
+              fullName: formData.fullName,
+              phoneNumber: formData.phoneNumber,
+              phoneVerified: formData.phoneVerified,
+              email: formData.email,
+              emailVerified: formData.emailVerified,
+              primaryCity: formData.primaryCity,
+              additionalCities: formData.additionalCities,
+              workRadius: formData.workRadius,
+              pincode: formData.pincode,
+              openToRelocate: formData.openToRelocate,
+            }))
           }}
-
           disabled={!isFormValid()}
           className="w-full group relative px-6 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:from-cyan-600 hover:to-blue-600 transition-all duration-200 flex items-center justify-center gap-2"
         >
@@ -375,7 +408,8 @@ const RegistrationStep1 = ({ onNextStep }) => {
         </button>
       </CardContent>
     </Card>
-  );
-};
+  )
+}
 
-export default RegistrationStep1;
+export default RegistrationStep1
+
