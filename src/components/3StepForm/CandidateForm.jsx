@@ -9,6 +9,7 @@ import hireLogo from "../../assets/hire.png"
 import RegistrationStep2 from "./step2.jsx"
 import RegistrationStep1 from "./step1.jsx"
 import { Card, CardContent } from "@/components/ui/card"
+import { submitCandidate } from "@/lib/api-service" // Import the API service
 
 const CandidateForm = ({ onFormSubmit }) => {
   // Form state management
@@ -17,6 +18,7 @@ const CandidateForm = ({ onFormSubmit }) => {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [status, setStatus] = useState(null)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [submissionError, setSubmissionError] = useState("")
 
   const { contextFormData, setContextFormData } = useFormContext()
   const [formData, setFormData] = useState({
@@ -196,6 +198,10 @@ const CandidateForm = ({ onFormSubmit }) => {
     try {
       // Simulate processing
       await new Promise((resolve) => setTimeout(resolve, 800))
+      
+      // DEBUG: Log context data when changing steps
+      console.log(`Moving to step ${nextStep}. Current context data:`, contextFormData)
+      
       setCurrentStep(nextStep)
       setStatus({
         type: "success",
@@ -214,34 +220,107 @@ const CandidateForm = ({ onFormSubmit }) => {
 
   const isStep3Complete = () => formData.aadhar && formData.aadhar.length === 12 && formData.agreeTerms
 
-  // Handle form submission
+  // Handle form submission - Fixed to properly pass name and email
   const handleSubmit = async () => {
     if (!isStep3Complete()) return
+    
     setIsLoading(true)
     setStatus(null)
+    setSubmissionError("")
+    
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      setStatus({
-        type: "success",
-        message: "Application submitted successfully!",
-      })
-
-      setContextFormData((prev) => ({
-        ...prev,
-        aadhar: formData.aadhar,
-      }))
-
-      // Show the success modal with confetti instead of immediately calling onFormSubmit
-      setShowSuccessModal(true)
+      // Debug the context data to verify values
+      console.log("Form submission - contextFormData:", contextFormData)
+      
+      // IMPORTANT: Fixed mapping of form fields - use correct property names
+      const candidateData = {
+        name: contextFormData.fullName || "",
+        email: contextFormData.email || "",
+        phone: contextFormData.phoneNumber || "",
+        job_id: contextFormData.jobId || 1,
+        resume_path: contextFormData.resume ? contextFormData.resume.name : null,
+        additional_info: JSON.stringify({
+          aadhar: formData.aadhar,
+          roles: contextFormData.roles || [],
+          languages: contextFormData.languages || [],
+          workSetting: contextFormData.workSetting || [],
+          teachingLevel: contextFormData.teachingLevel || [],
+          subject: contextFormData.subject || [],
+          certification: contextFormData.certification || "",
+          certificateLinks: contextFormData.certificateLinks || []
+        })
+      }
+      
+      console.log("Submitting candidate data:", candidateData)
+      
+      // Create an AbortController to handle fetch timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      try {
+        // Use direct fetch with abort controller for timeout handling
+        const directResponse = await fetch('http://localhost:8080/api/candidates', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(candidateData),
+          signal: controller.signal
+        });
+        
+        // Clear the timeout since the request completed
+        clearTimeout(timeoutId);
+        
+        if (!directResponse.ok) {
+          const errorData = await directResponse.json();
+          console.error("API error:", errorData);
+          throw new Error(errorData.error || "Server rejected the submission");
+        }
+        
+        const responseData = await directResponse.json();
+        console.log("API success:", responseData);
+        
+        setStatus({
+          type: "success",
+          message: "Application submitted successfully!",
+        });
+        
+        setContextFormData((prev) => ({
+          ...prev,
+          aadhar: formData.aadhar,
+          candidateId: responseData.candidateId
+        }));
+        
+        setShowSuccessModal(true);
+      } catch (fetchError) {
+        console.error("Fetch error:", fetchError);
+        
+        // Check if it's an abort error (timeout)
+        if (fetchError.name === 'AbortError') {
+          throw new Error("Connection timed out. Please check your internet connection and try again.");
+        }
+        
+        // For other fetch errors, try a different approach
+        if (fetchError.message === "Failed to fetch") {
+          throw new Error("Cannot connect to server. Please check if the backend is running on http://localhost:8080");
+        }
+        
+        // Re-throw other errors
+        throw fetchError;
+      }
     } catch (error) {
+      console.error("Error submitting candidate:", error);
+      
       setStatus({
         type: "error",
-        message: "Failed to submit. Please try again.",
-      })
+        message: error.message || "Failed to submit. Please try again.",
+      });
+      
+      setSubmissionError(error.message || "Failed to submit application. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     console.log("contextFormData", contextFormData)
@@ -293,7 +372,7 @@ const CandidateForm = ({ onFormSubmit }) => {
     <RegistrationStep2 onNextStep={handleStepChange} onPreviousStep={handleStepChange} />
   )
 
-  // Step 3: Document Verification
+  // Step 3: Document Verification - Updated to show submission errors
   const renderDocumentVerification = () => (
     <Card className="w-full max-w-2xl mx-auto bg-black/20 backdrop-blur">
       <CardContent className="p-6 space-y-6">
@@ -365,6 +444,13 @@ const CandidateForm = ({ onFormSubmit }) => {
             </a>
           </label>
         </div>
+
+        {/* Display submission error if any */}
+        {submissionError && (
+          <div className="bg-rose-400/10 text-rose-400 p-3 rounded-lg text-sm">
+            {submissionError}
+          </div>
+        )}
 
         {/* Navigation */}
         <div className="flex gap-4">

@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Connection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .result {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        button {
+            padding: 10px 15px;
+            margin: 5px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0069d9;
+        }
+        pre {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Connection Test</h1>
+    <p>This page helps diagnose connection issues with your backend server.</p>
+    
+    <div>
+        <button onclick="testHealth()">Test Health Endpoint</button>
+        <button onclick="testJobs()">Test Jobs Endpoint</button>
+        <button onclick="testWithFetch()">Test with Simple Fetch</button>
+        <button onclick="testWithXHR()">Test with XMLHttpRequest</button>
+    </div>
+    
+    <div id="results"></div>
+    
+    <script>
+        function addResult(success, message, data) {
+            const resultsDiv = document.getElementById('results');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result ${success ? 'success' : 'error'}`;
+            
+            const messageP = document.createElement('p');
+            messageP.textContent = message;
+            resultDiv.appendChild(messageP);
+            
+            if (data) {
+                const pre = document.createElement('pre');
+                pre.textContent = typeof data === 'object' ? JSON.stringify(data, null, 2) : data;
+                resultDiv.appendChild(pre);
+            }
+            
+            resultsDiv.prepend(resultDiv);
+        }
+        
+        async function testHealth() {
+            try {
+                const start = new Date();
+                const response = await fetch('http://localhost:5000/api/health', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                const end = new Date();
+                const timeMs = end - start;
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}`);
+                }
+                
+                const data = await response.json();
+                addResult(true, `Health check successful (${timeMs}ms)`, data);
+            } catch (error) {
+                addResult(false, `Health check failed: ${error.message}`);
+                console.error('Health check error:', error);
+            }
+        }
+        
+        async function testJobs() {
+            try {
+                const response = await fetch('http://localhost:5000/api/jobs', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error ${response.status}`);
+                }
+                
+                const data = await response.json();
+                addResult(true, 'Jobs endpoint successful', data);
+            } catch (error) {
+                addResult(false, `Jobs endpoint failed: ${error.message}`);
+                console.error('Jobs endpoint error:', error);
+            }
+        }
+        
+        function testWithFetch() {
+            fetch('http://localhost:5000/api/health')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    addResult(true, 'Simple fetch successful', data);
+                })
+                .catch(error => {
+                    addResult(false, `Simple fetch failed: ${error.message}`);
+                    console.error('Simple fetch error:', error);
+                });
+        }
+        
+        function testWithXHR() {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', 'http://localhost:5000/api/health', true);
+            xhr.setRequestHeader('Accept', 'application/json');
+            
+            xhr.onload = function() {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                    try {
+                        const data = JSON.parse(xhr.responseText);
+                        addResult(true, 'XMLHttpRequest successful', data);
+                    } catch (e) {
+                        addResult(false, `Failed to parse response: ${e.message}`, xhr.responseText);
+                    }
+                } else {
+                    addResult(false, `XMLHttpRequest failed with status ${xhr.status}`);
+                }
+            };
+            
+            xhr.onerror = function() {
+                addResult(false, 'XMLHttpRequest failed - Network Error');
+            };
+            
+            xhr.send();
+        }
+    </script>
+</body>
+</html>

@@ -7,6 +7,7 @@ import ProfileDashboard from "./pages/ProfileDashboard.jsx";
 import './i18n.js';
 import JobSelectionForm from "./components/3StepForm/JobSelection";
 import CandidateForm from "./components/3StepForm/CandidateForm";
+import DatabaseTest from "./components/DatabaseTest"; // Import the database test component
 
 function App() {
 
@@ -19,18 +20,13 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/profiledashboard" element={<ProfileDashboard />} />
-          {/* Just some for testing       */}
+          {/* Just some for testing */}
           <Route path="/cand" element={<CandidateForm />} />
+          {/* Route for database testing */}
+          <Route path="/db-test" element={<DatabaseTest />} />
         </Routes>
       </BrowserRouter>
     </FormProvider>
-  
-
-    // <RegistrationStep1/> 
-    // this is good step 2
-    //  <RegistrationStep2/>   
-
-
   );
 }
 

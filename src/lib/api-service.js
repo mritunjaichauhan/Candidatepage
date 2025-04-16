@@ -1,0 +1,109 @@
+// API Service for database operations
+const API_URL = 'http://localhost:8080/api'; // Updated from 5000 to 8080
+
+// Optional: Set a timeout for all fetch requests (in milliseconds)
+const FETCH_TIMEOUT = 10000;
+
+/**
+ * Enhanced fetch function with timeout and better error handling
+ */
+async function fetchWithTimeout(url, options = {}) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+      // Add cache control to prevent caching issues
+      headers: {
+        ...options.headers,
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache'
+      }
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ 
+        error: `HTTP error ${response.status}` 
+      }));
+      throw new Error(errorData.error || `Server responded with status: ${response.status}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    clearTimeout(timeoutId);
+    
+    if (error.name === 'AbortError') {
+      throw new Error('Request timed out. Please check your internet connection.');
+    }
+    
+    if (error.message === 'Failed to fetch') {
+      throw new Error('Cannot connect to server. Please check if the backend is running on http://localhost:8080');
+    }
+    
+    throw error;
+  }
+}
+
+/**
+ * Check if the server is healthy
+ */
+export const checkServerHealth = async () => {
+  try {
+    const response = await fetchWithTimeout(`${API_URL}/health`);
+    return response.status === 'ok';
+  } catch (error) {
+    console.error('Server health check failed:', error);
+    return false;
+  }
+};
+
+/**
+ * Fetch all available jobs from the database
+ */
+export const fetchJobs = async () => {
+  try {
+    return await fetchWithTimeout(`${API_URL}/jobs`);
+  } catch (error) {
+    console.error('Error fetching jobs:', error);
+    throw error;
+  }
+};
+
+/**
+ * Submit a candidate application to the database
+ */
+export const submitCandidate = async (candidateData) => {
+  try {
+    const isServerHealthy = await checkServerHealth().catch(() => false);
+    if (!isServerHealthy) {
+      throw new Error('Cannot connect to the server. Please check if it is running.');
+    }
+
+    return await fetchWithTimeout(`${API_URL}/candidates`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(candidateData),
+    });
+  } catch (error) {
+    console.error('Error submitting application:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch all candidates from the database (usually for admin dashboard)
+ */
+export const fetchCandidates = async () => {
+  try {
+    return await fetchWithTimeout(`${API_URL}/candidates`);
+  } catch (error) {
+    console.error('Error fetching candidates:', error);
+    throw error;
+  }
+};

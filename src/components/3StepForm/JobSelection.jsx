@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Select from "react-select"
 import { Search, Info } from "lucide-react"
-Select
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { useFormContext } from "@/ContextProvider/FormProvider"
+import { fetchJobs } from "@/lib/api-service"
 
 // Add the F&B industry category to the categories array after the healthcare category
 const categories = [
@@ -574,6 +574,9 @@ const JobSelectionForm = () => {
   const [searchQuery, setSearchQuery] = useState("")
   const [openAccordions, setOpenAccordions] = useState(new Set()) // Track multiple open accordions
   const { contextFormData, setContextFormData } = useFormContext()
+  const [dbJobs, setDbJobs] = useState([]) // Still needed behind the scenes
+  const [loading, setLoading] = useState(false) // Loading state for API calls
+  const [error, setError] = useState(null) // Error state for API calls
   const [formData, setFormData] = useState({
     category: "",
     subcategory: "",
@@ -615,7 +618,26 @@ const JobSelectionForm = () => {
     event_focus: "",
     sales_role_type: "",
     procurement_focus: "",
+    jobId: null, // New field to store the selected job ID from the database
   })
+
+  // Fetch jobs from database when component mounts but don't display the Database Jobs category
+  useEffect(() => {
+    const loadJobs = async () => {
+      try {
+        setLoading(true)
+        const jobs = await fetchJobs()
+        setDbJobs(jobs)
+        setLoading(false)
+      } catch (err) {
+        console.error("Failed to fetch jobs:", err)
+        setError("Failed to load jobs. Please try again later.")
+        setLoading(false)
+      }
+    }
+
+    loadJobs()
+  }, [])
 
   // For step 2 education & training select
   const customStyles = {
@@ -767,12 +789,6 @@ const JobSelectionForm = () => {
     </Accordion>
   )
 
-  // For Resume upload logic
-  const handleFileChange = (event) => {
-    // const file = event.target.files[0];
-    // setResume(file);
-  }
-
   const renderSalesBPO = () => (
     <div className="space-y-6">
       <div className="space-y-4">
@@ -877,7 +893,6 @@ const JobSelectionForm = () => {
     </div>
   )
 
-  // Add the renderFnBIndustry function after the renderHealthcare function
   const renderFnBIndustry = () => (
     <div className="space-y-8">
       {/* Role Selection Section */}
@@ -1223,20 +1238,20 @@ const JobSelectionForm = () => {
     </div>
   )
 
-  // Update the conditional rendering in the return statement to include the F&B industry option
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-8 py-4 ">
+    <div className="w-full max-w-4xl mx-auto space-y-8 py-4">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
         <input
           type="text"
-          placeholder="Search for roles (e.g., 'plumber', 'retail')"
+          placeholder="Search for roles (e.g., 'developer', 'manager')"
           className="w-full pl-10 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-200"
           onChange={(e) => handleSearch(e.target.value)}
           value={searchQuery}
         />
       </div>
 
+      {/* Remove Database Jobs category */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         {categories.map((category) => (
           <button
@@ -1287,7 +1302,7 @@ const JobSelectionForm = () => {
                 <TooltipContent>
                   <p>
                     {isResumeRequired()
-                      ? "Resume is required for Blue-Collar Management positions, Sales & Marketing roles, and all Healthcare positions"
+                      ? "Resume is required for Blue-Collar Management positions, Sales & Marketing roles, Healthcare positions, and database jobs"
                       : "Resume is optional but recommended for better job matching"}
                   </p>
                 </TooltipContent>
