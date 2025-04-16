@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { MapPin, Info, ChevronRight, AlertCircle } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { useFormContext } from "@/ContextProvider/FormProvider"
@@ -12,18 +12,39 @@ const GOOGLE_MAPS_API_KEY = 'YOUR_API_KEY';
 */
 
 const RegistrationStep1 = ({ onNextStep }) => {
+  const { contextFormData, setContextFormData } = useFormContext()
+
+  // Initialize form data with values from context if available
   const [formData, setFormData] = useState({
-    fullName: "",
-    phoneNumber: "",
-    phoneVerified: false,
-    email: "",
-    emailVerified: false,
-    primaryCity: "",
-    additionalCities: [],
-    workRadius: "5",
-    pincode: "",
-    openToRelocate: false,
+    fullName: contextFormData.fullName || "",
+    phoneNumber: contextFormData.phoneNumber || "",
+    phoneVerified: contextFormData.phoneVerified || false,
+    email: contextFormData.email || "",
+    emailVerified: contextFormData.emailVerified || false,
+    primaryCity: contextFormData.primaryCity || "",
+    additionalCities: contextFormData.additionalCities || [],
+    workRadius: contextFormData.workRadius || "5",
+    pincode: contextFormData.pincode || "",
+    openToRelocate: contextFormData.openToRelocate || false,
+    callingNumber: contextFormData.callingNumber || "",
   })
+
+  // Log initial form and context data for debugging
+  useEffect(() => {
+    console.log("[Step1] Initial form data:", formData);
+    console.log("[Step1] Initial context data:", contextFormData);
+  }, []);
+
+  // Immediately set context formData when component mounts
+  useEffect(() => {
+    console.log("[Step1] Setting initial context data directly")
+    setContextFormData(prevData => ({
+      ...prevData,
+      fullName: formData.fullName,
+      email: formData.email,
+      phoneNumber: formData.phoneNumber
+    }))
+  }, [])
 
   // Add validation states
   const [phoneError, setPhoneError] = useState("")
@@ -33,9 +54,64 @@ const RegistrationStep1 = ({ onNextStep }) => {
   const [showEmailOtp, setShowEmailOtp] = useState(false)
   const [showCityTooltip, setShowCityTooltip] = useState(false)
   const [showRadiusTooltip, setShowRadiusTooltip] = useState(false)
-  const { contextFormData, setContextFormData } = useFormContext()
+  const [isSameNumber, setIsSameNumber] = useState(contextFormData.callingNumber ? false : true) // check if WhatsApp number is same as calling number
 
-  const [isSameNumber, setIsSameNumber] = useState(true) // check if WhatsApp number is same as calling number
+  // Direct update function to immediately update both local state and context
+  const directUpdate = (field, value) => {
+    // Update local state
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+    
+    // Directly update context 
+    setContextFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+    
+    console.log(`[Step1] Direct update: ${field} = ${value}`)
+  }
+
+  // Sync form data changes with context data
+  useEffect(() => {
+    console.log("[Step1] Updating context with form data:", formData);
+    
+    setContextFormData(prevData => {
+      const updatedData = {
+        ...prevData,
+        fullName: formData.fullName,
+        phoneNumber: formData.phoneNumber,
+        phoneVerified: formData.phoneVerified,
+        email: formData.email,
+        emailVerified: formData.emailVerified,
+        primaryCity: formData.primaryCity,
+        additionalCities: formData.additionalCities,
+        workRadius: formData.workRadius,
+        pincode: formData.pincode,
+        openToRelocate: formData.openToRelocate,
+        callingNumber: formData.callingNumber,
+      };
+      
+      console.log("[Step1] Updated context data:", updatedData);
+      return updatedData;
+    });
+  }, [formData, setContextFormData])
+
+  // Update form field and sync with context
+  const updateFormData = (field, value) => {
+    console.log(`[Step1] Updating field '${field}' to:`, value);
+    
+    // For critical fields, use direct update to context
+    if (field === 'fullName' || field === 'email' || field === 'phoneNumber') {
+      directUpdate(field, value)
+    } else {
+      setFormData(prevData => ({
+        ...prevData,
+        [field]: value
+      }));
+    }
+  }
 
   const handleVerifyPhone = () => {
     setShowPhoneOtp(true)
@@ -66,7 +142,7 @@ const RegistrationStep1 = ({ onNextStep }) => {
     }
 
     setPhoneError("")
-    setFormData({ ...formData, phoneNumber: value })
+    directUpdate('phoneNumber', value)
   }
 
   // Validate phone on blur
@@ -96,7 +172,7 @@ const RegistrationStep1 = ({ onNextStep }) => {
   // Handle email input with validation
   const handleEmailChange = (e) => {
     const value = e.target.value
-    setFormData({ ...formData, email: value })
+    directUpdate('email', value)
 
     // Clear error when typing
     if (emailError) setEmailError("")
@@ -117,6 +193,38 @@ const RegistrationStep1 = ({ onNextStep }) => {
     )
   }
 
+  // Handle next step
+  const handleNextStep = () => {
+    if (isFormValid()) {
+      console.log("[Step1] Form is valid, saving to context and proceeding to next step");
+      console.log("[Step1] Final form data being saved:", formData);
+      
+      // Force update critical fields before proceeding
+      setContextFormData(prevData => {
+        const updatedData = {
+          ...prevData,
+          fullName: formData.fullName,
+          phoneNumber: formData.phoneNumber,
+          email: formData.email,
+          primaryCity: formData.primaryCity,
+          workRadius: formData.workRadius
+        };
+        
+        console.log("[Step1] Explicitly updated context before proceeding:", updatedData);
+        return updatedData;
+      });
+      
+      // Debug log to verify context is updated
+      setTimeout(() => {
+        console.log("[Step1] Context data after update:", contextFormData);
+        onNextStep(2);
+      }, 200);
+    } else {
+      console.log("[Step1] Form validation failed");
+      alert("Please fill in all required fields correctly");
+    }
+  }
+
   return (
     <Card className="w-full max-w-2xl mx-auto bg-black/20 backdrop-blur">
       <CardContent className="p-6 space-y-6">
@@ -126,7 +234,7 @@ const RegistrationStep1 = ({ onNextStep }) => {
             type="text"
             placeholder="Full Name *"
             value={formData.fullName}
-            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+            onChange={(e) => directUpdate('fullName', e.target.value)}
             className="w-full px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50 placeholder-slate-500"
           />
         </div>
@@ -172,7 +280,7 @@ const RegistrationStep1 = ({ onNextStep }) => {
               <button
                 onClick={() => {
                   // Handle OTP verification logic here
-                  setFormData({ ...formData, phoneVerified: true })
+                  updateFormData('phoneVerified', true)
                   setShowPhoneOtp(false)
                 }}
                 className="px-4 py-2 rounded-lg border border-slate-600 text-slate-400 hover:border-cyan-400 hover:text-cyan-400 transition-colors"
@@ -192,7 +300,10 @@ const RegistrationStep1 = ({ onNextStep }) => {
               name="sameNumber"
               value="yes"
               checked={isSameNumber}
-              onChange={() => setIsSameNumber(true)}
+              onChange={() => {
+                setIsSameNumber(true)
+                updateFormData('callingNumber', '')
+              }}
               className="accent-cyan-400"
             />
             Yes
@@ -221,7 +332,7 @@ const RegistrationStep1 = ({ onNextStep }) => {
                 const value = e.target.value
                 // Only accept numeric input and limit to 10 digits
                 if (value === "" || (value.length <= 10 && /^\d*$/.test(value))) {
-                  setFormData({ ...formData, callingNumber: value })
+                  updateFormData('callingNumber', value)
                 }
               }}
               maxLength={10}
@@ -255,8 +366,7 @@ const RegistrationStep1 = ({ onNextStep }) => {
             </div>
             <button
               onClick={handleVerifyEmail}
-              disabled={!!emailError || !formData.email}
-              className="px-4 py-2 rounded-lg border border-slate-600 text-slate-400 hover:border-cyan-400 hover:text-cyan-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 rounded-lg border border-slate-600 text-slate-400 hover:border-cyan-400 hover:text-cyan-400 transition-colors"
             >
               Verify
             </button>
@@ -270,8 +380,8 @@ const RegistrationStep1 = ({ onNextStep }) => {
               />
               <button
                 onClick={() => {
-                  // Handle email OTP verification logic here
-                  setFormData({ ...formData, emailVerified: true })
+                  // Handle email OTP verification logic
+                  updateFormData('emailVerified', true)
                   setShowEmailOtp(false)
                 }}
                 className="px-4 py-2 rounded-lg border border-slate-600 text-slate-400 hover:border-cyan-400 hover:text-cyan-400 transition-colors"
@@ -282,129 +392,100 @@ const RegistrationStep1 = ({ onNextStep }) => {
           )}
         </div>
 
-        {/* City Selection */}
-        <div className="space-y-4">
-          <div className="relative">
+        {/* Primary City */}
+        <div className="relative">
+          <div className="flex items-center">
             <input
               type="text"
-              placeholder="Select Your City *"
+              placeholder="Primary City *"
               value={formData.primaryCity}
-              onChange={(e) => setFormData({ ...formData, primaryCity: e.target.value })}
-              className="w-full px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50 placeholder-slate-500 pr-12"
-            />
-            <MapPin className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-500" />
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              className="text-cyan-400 text-sm flex items-center gap-1 hover:text-cyan-300"
-              onClick={() =>
-                setFormData({
-                  ...formData,
-                  additionalCities: [...formData.additionalCities, ""],
-                })
-              }
-            >
-              + Add Additional City
-            </button>
-            <div className="relative">
-              <Info
-                className="w-4 h-4 text-slate-400 cursor-help"
-                onMouseEnter={() => setShowCityTooltip(true)}
-                onMouseLeave={() => setShowCityTooltip(false)}
-              />
-              {showCityTooltip && (
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 p-2 bg-slate-800 rounded-lg text-xs text-slate-200 w-48 text-center">
-                  Jobs will be provided based on your selected cities
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Pincode Input */}
-          <div className="mt-2">
-            <input
-              type="text"
-              placeholder="Enter Pincode"
-              maxLength={6}
-              onChange={(e) => {
-                const value = e.target.value
-                if (value === "" || /^\d*$/.test(value)) {
-                  // Only update if empty or contains only digits
-                  setFormData({ ...formData, pincode: value })
-                }
-              }}
+              onChange={(e) => updateFormData('primaryCity', e.target.value)}
               className="w-full px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50 placeholder-slate-500"
             />
+            <button
+              onClick={() => setShowCityTooltip((prev) => !prev)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-cyan-400"
+            >
+              <Info className="w-4 h-4" />
+            </button>
           </div>
-        </div>
-
-        {/* Work Radius */}
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-slate-400">Work Radius *</label>
-            <div className="relative">
-              <Info
-                className="w-4 h-4 text-slate-400 cursor-help"
-                onMouseEnter={() => setShowRadiusTooltip(true)}
-                onMouseLeave={() => setShowRadiusTooltip(false)}
-              />
-              {showRadiusTooltip && (
-                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 p-2 bg-slate-800 rounded-lg text-xs text-slate-200 w-48 text-center">
-                  We will try to find opportunities close to you
-                </div>
-              )}
+          {showCityTooltip && (
+            <div className="absolute right-0 mt-1 w-52 p-2 bg-black/90 border border-slate-700 rounded-md text-xs text-slate-300 z-10">
+              Enter the city where you're currently located and prefer to work
             </div>
-          </div>
-          <select
-            value={formData.workRadius}
-            onChange={(e) => setFormData({ ...formData, workRadius: e.target.value })}
-            className="w-full px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50"
-          >
-            <option value="5">Within 5 KM</option>
-            <option value="10">Within 10 KM</option>
-            <option value="15">Within 15 KM</option>
-            <option value="20">Within 20 KM</option>
-          </select>
+          )}
         </div>
 
-        {/* Open to Relocate Checkbox */}
-        <div className="flex items-center gap-2">
+        {/* Pincode */}
+        <div>
+          <input
+            type="text"
+            placeholder="Pincode"
+            value={formData.pincode}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, "")
+              if (value.length <= 6) {
+                updateFormData('pincode', value)
+              }
+            }}
+            maxLength={6}
+            className="w-full px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50 placeholder-slate-500"
+          />
+        </div>
+
+        {/* Work Radius Dropdown */}
+        <div className="relative">
+          <div className="flex items-center">
+            <select
+              value={formData.workRadius}
+              onChange={(e) => updateFormData('workRadius', e.target.value)}
+              className="w-full px-4 py-3 bg-black/50 border border-slate-800 rounded-lg focus:outline-none focus:border-cyan-400 transition-colors text-slate-50 appearance-none"
+            >
+              <option value="5">Within 5 km</option>
+              <option value="10">Within 10 km</option>
+              <option value="15">Within 15 km</option>
+              <option value="20">Within 20 km</option>
+              <option value="25">Within 25 km</option>
+            </select>
+            <button
+              onClick={() => setShowRadiusTooltip((prev) => !prev)}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-cyan-400"
+            >
+              <Info className="w-4 h-4" />
+            </button>
+          </div>
+          {showRadiusTooltip && (
+            <div className="absolute right-0 mt-1 w-52 p-2 bg-black/90 border border-slate-700 rounded-md text-xs text-slate-300 z-10">
+              Select how far you're willing to travel for work
+            </div>
+          )}
+        </div>
+
+        {/* Open to Relocate */}
+        <div className="flex items-center">
           <input
             type="checkbox"
-            id="relocate"
+            id="openToRelocate"
             checked={formData.openToRelocate}
-            onChange={(e) => setFormData({ ...formData, openToRelocate: e.target.checked })}
-            className="w-4 h-4 accent-cyan-400 bg-black/50 border-slate-800 rounded focus:ring-cyan-400"
+            onChange={(e) => updateFormData('openToRelocate', e.target.checked)}
+            className="mr-2 accent-cyan-400"
           />
-          <label htmlFor="relocate" className="text-slate-400">
-            Open to Relocate
+          <label htmlFor="openToRelocate" className="text-slate-300">
+            I'm open to relocating for work
           </label>
         </div>
 
-        {/* Continue Button */}
+        {/* Navigation Button - Only active if form is valid */}
         <button
-          onClick={() => {
-            onNextStep(2)
-            setContextFormData((prev) => ({
-              ...prev,
-              fullName: formData.fullName,
-              phoneNumber: formData.phoneNumber,
-              phoneVerified: formData.phoneVerified,
-              email: formData.email,
-              emailVerified: formData.emailVerified,
-              primaryCity: formData.primaryCity,
-              additionalCities: formData.additionalCities,
-              workRadius: formData.workRadius,
-              pincode: formData.pincode,
-              openToRelocate: formData.openToRelocate,
-            }))
-          }}
+          onClick={handleNextStep}
           disabled={!isFormValid()}
-          className="w-full group relative px-6 py-3 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:from-cyan-600 hover:to-blue-600 transition-all duration-200 flex items-center justify-center gap-2"
+          className={`w-full flex items-center justify-center gap-2 p-4 rounded-xl ${
+            isFormValid()
+              ? "bg-gradient-to-r from-cyan-500 to-violet-500 text-white hover:opacity-90"
+              : "bg-slate-800/50 text-slate-500 cursor-not-allowed"
+          } transition-all`}
         >
-          Continue
-          <ChevronRight className="w-5 h-5" />
+          Next Step <ChevronRight className="w-5 h-5" />
         </button>
       </CardContent>
     </Card>

@@ -19,6 +19,7 @@ const CandidateForm = ({ onFormSubmit }) => {
   const [status, setStatus] = useState(null)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [submissionError, setSubmissionError] = useState("")
+  const [showDebugInfo, setShowDebugInfo] = useState(false) // For debugging purposes
 
   const { contextFormData, setContextFormData } = useFormContext()
   const [formData, setFormData] = useState({
@@ -200,7 +201,7 @@ const CandidateForm = ({ onFormSubmit }) => {
       await new Promise((resolve) => setTimeout(resolve, 800))
       
       // DEBUG: Log context data when changing steps
-      console.log(`Moving to step ${nextStep}. Current context data:`, contextFormData)
+      console.log(`[CandidateForm] Moving to step ${nextStep}. Current context data:`, JSON.stringify(contextFormData, null, 2))
       
       setCurrentStep(nextStep)
       setStatus({
@@ -220,103 +221,129 @@ const CandidateForm = ({ onFormSubmit }) => {
 
   const isStep3Complete = () => formData.aadhar && formData.aadhar.length === 12 && formData.agreeTerms
 
-  // Handle form submission - Fixed to properly pass name and email
+  // Handle form submission with extra validation and debug info
   const handleSubmit = async () => {
     if (!isStep3Complete()) return
+    
+    // Extra validation for required fields
+    if (!contextFormData.fullName || !contextFormData.email) {
+      console.error("Critical fields missing: ", {
+        name: contextFormData.fullName || null,
+        email: contextFormData.email || null
+      });
+      
+      setSubmissionError("Name and email are required. Make sure to complete Step 1 properly.");
+      setStatus({
+        type: "error",
+        message: "Name and email are required. Go back to Step 1 and complete these fields.",
+      });
+      return;
+    }
     
     setIsLoading(true)
     setStatus(null)
     setSubmissionError("")
     
     try {
-      // Debug the context data to verify values
-      console.log("Form submission - contextFormData:", contextFormData)
+      // Log complete context data for debugging
+      console.log("[CandidateForm] Complete context data before submission:", contextFormData);
       
-      // IMPORTANT: Fixed mapping of form fields - use correct property names
+      // Make sure step 3 fields are correctly added to context
+      setContextFormData(prev => ({
+        ...prev,
+        aadhar: formData.aadhar,
+        agreeTerms: formData.agreeTerms,
+        languages: formData.languages,
+        pan: formData.pan,
+        pancard: formData.pancard,
+        aadharcard: formData.aadharcard
+      }));
+
+      // Prepare all form fields for submission - use direct constants to ensure proper values
       const candidateData = {
-        name: contextFormData.fullName || "",
-        email: contextFormData.email || "",
-        phone: contextFormData.phoneNumber || "",
+        // Required fields - use direct assignments for critical fields
+        name: String(contextFormData.fullName).trim(),
+        email: String(contextFormData.email).trim(),
+        phone: String(contextFormData.phoneNumber || "").trim(),
         job_id: contextFormData.jobId || 1,
         resume_path: contextFormData.resume ? contextFormData.resume.name : null,
+        
+        // Step 1 fields
+        full_name: String(contextFormData.fullName).trim(),
+        phone_number: String(contextFormData.phoneNumber || "").trim(),
+        phone_verified: Boolean(contextFormData.phoneVerified),
+        email_verified: Boolean(contextFormData.emailVerified),
+        primary_city: String(contextFormData.primaryCity || "").trim(),
+        additional_cities: Array.isArray(contextFormData.additionalCities) ? contextFormData.additionalCities : [],
+        work_radius: String(contextFormData.workRadius || "").trim(),
+        pincode: String(contextFormData.pincode || "").trim(),
+        open_to_relocate: Boolean(contextFormData.openToRelocate),
+        calling_number: String(contextFormData.callingNumber || contextFormData.phoneNumber || "").trim(),
+        
+        // Step 2 fields
+        age: String(contextFormData.age || "").trim(),
+        work_schedule: Array.isArray(contextFormData.workSchedule) 
+          ? contextFormData.workSchedule.join(',') 
+          : String(contextFormData.workSchedule || "").trim(),
+        education: String(contextFormData.education || "").trim(),
+        in_field_experience: String(contextFormData.inFieldExperience || "").trim(),
+        experience: String(contextFormData.experience || "").trim(),
+        expected_ctc: String(contextFormData.expectedCtc || "").trim(),
+        open_to_gig: Boolean(contextFormData.openToGig !== undefined ? contextFormData.openToGig : true),
+        open_to_full_time: Boolean(contextFormData.openToFullTime),
+        has_license: Boolean(contextFormData.hasLicense),
+        license_types: Array.isArray(contextFormData.licenseTypes) ? contextFormData.licenseTypes : [],
+        additional_vehicle: String(contextFormData.additionalVehicle || "").trim(),
+        additional_vehicle_type: String(contextFormData.additionalVehicleType || "").trim(),
+        commercial_vehicle_type: String(contextFormData.commercialVehicleType || "").trim(),
+        
+        // Step 3 fields - use formData directly since we just updated context
+        languages: Array.isArray(formData.languages) ? formData.languages : [],
+        pan: String(formData.pan || "").trim(),
+        pancard: String(formData.pancard || "").trim(),
+        aadhar: String(formData.aadhar || "").trim(),
+        aadharcard: String(formData.aadharcard || "").trim(),
+        agree_terms: Boolean(formData.agreeTerms),
+        
+        // Additional JSON data field for complex data structures
         additional_info: JSON.stringify({
-          aadhar: formData.aadhar,
+          aadhar: formData.aadhar || "",
           roles: contextFormData.roles || [],
           languages: contextFormData.languages || [],
           workSetting: contextFormData.workSetting || [],
           teachingLevel: contextFormData.teachingLevel || [],
           subject: contextFormData.subject || [],
           certification: contextFormData.certification || "",
-          certificateLinks: contextFormData.certificateLinks || []
+          certificateLinks: contextFormData.certificateLinks || [],
+          jobCategories: contextFormData.jobCategories || [],
+          pastRoles: contextFormData.pastRoles || []
         })
+      };
+      
+      // Final validation check for required fields
+      if (!candidateData.name || !candidateData.email) {
+        throw new Error("Name and email are required fields. Please complete Step 1.");
       }
       
-      console.log("Submitting candidate data:", candidateData)
+      console.log("[CandidateForm] Final submission payload:", candidateData);
       
-      // Create an AbortController to handle fetch timeout
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      // Submit to the API
+      const response = await submitCandidate(candidateData);
+      console.log("Submission response:", response);
       
-      try {
-        // Use direct fetch with abort controller for timeout handling
-        const directResponse = await fetch('http://localhost:8080/api/candidates', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(candidateData),
-          signal: controller.signal
-        });
-        
-        // Clear the timeout since the request completed
-        clearTimeout(timeoutId);
-        
-        if (!directResponse.ok) {
-          const errorData = await directResponse.json();
-          console.error("API error:", errorData);
-          throw new Error(errorData.error || "Server rejected the submission");
-        }
-        
-        const responseData = await directResponse.json();
-        console.log("API success:", responseData);
-        
-        setStatus({
-          type: "success",
-          message: "Application submitted successfully!",
-        });
-        
-        setContextFormData((prev) => ({
-          ...prev,
-          aadhar: formData.aadhar,
-          candidateId: responseData.candidateId
-        }));
-        
-        setShowSuccessModal(true);
-      } catch (fetchError) {
-        console.error("Fetch error:", fetchError);
-        
-        // Check if it's an abort error (timeout)
-        if (fetchError.name === 'AbortError') {
-          throw new Error("Connection timed out. Please check your internet connection and try again.");
-        }
-        
-        // For other fetch errors, try a different approach
-        if (fetchError.message === "Failed to fetch") {
-          throw new Error("Cannot connect to server. Please check if the backend is running on http://localhost:8080");
-        }
-        
-        // Re-throw other errors
-        throw fetchError;
-      }
+      // Show success message and modal
+      setStatus({
+        type: "success",
+        message: "Your application has been submitted successfully!",
+      });
+      setShowSuccessModal(true);
     } catch (error) {
-      console.error("Error submitting candidate:", error);
-      
+      console.error("Form submission error:", error);
+      setSubmissionError(error.message || "Failed to submit application. Please try again.");
       setStatus({
         type: "error",
-        message: error.message || "Failed to submit. Please try again.",
+        message: error.message || "Failed to submit application. Please try again.",
       });
-      
-      setSubmissionError(error.message || "Failed to submit application. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -324,6 +351,29 @@ const CandidateForm = ({ onFormSubmit }) => {
 
   useEffect(() => {
     console.log("contextFormData", contextFormData)
+    
+    // Debug helper to check for all required fields
+    const requiredFields = {
+      // Step 1
+      step1: ['fullName', 'email', 'phoneNumber', 'primaryCity'],
+      // Step 2
+      step2: ['age', 'workSchedule', 'education', 'inFieldExperience'],
+      // Step 3
+      step3: ['aadhar', 'agreeTerms']
+    };
+    
+    const missingFields = {
+      step1: requiredFields.step1.filter(field => !contextFormData[field]),
+      step2: requiredFields.step2.filter(field => {
+        if (field === 'workSchedule') {
+          return !Array.isArray(contextFormData[field]) || contextFormData[field].length === 0;
+        }
+        return !contextFormData[field];
+      }),
+      step3: requiredFields.step3.filter(field => !contextFormData[field])
+    };
+    
+    console.log('[CandidateForm] Missing fields check:', missingFields);
   }, [contextFormData])
 
   // Action Button Component
@@ -372,10 +422,55 @@ const CandidateForm = ({ onFormSubmit }) => {
     <RegistrationStep2 onNextStep={handleStepChange} onPreviousStep={handleStepChange} />
   )
 
-  // Step 3: Document Verification - Updated to show submission errors
+  // Step 3: Document Verification - Updated with debug info
   const renderDocumentVerification = () => (
     <Card className="w-full max-w-2xl mx-auto bg-black/20 backdrop-blur">
       <CardContent className="p-6 space-y-6">
+        {/* Debug section - Display crucial form data to verify */}
+        <div className="bg-black/40 p-4 rounded-lg border border-slate-700 mb-4">
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-sm font-semibold text-slate-300">Form Data Status</h3>
+            <button 
+              onClick={() => setShowDebugInfo(!showDebugInfo)}
+              className="text-xs px-2 py-1 bg-slate-800 rounded text-slate-400 hover:bg-slate-700"
+            >
+              {showDebugInfo ? "Hide Details" : "Show Details"}
+            </button>
+          </div>
+          
+          <div className="space-y-1">
+            <div className="flex justify-between">
+              <span className="text-xs text-slate-400">Name:</span>
+              <span className={`text-xs ${contextFormData.fullName ? "text-green-400" : "text-red-400"}`}>
+                {contextFormData.fullName || "Missing"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-xs text-slate-400">Email:</span>
+              <span className={`text-xs ${contextFormData.email ? "text-green-400" : "text-red-400"}`}>
+                {contextFormData.email || "Missing"}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-xs text-slate-400">Phone:</span>
+              <span className={`text-xs ${contextFormData.phoneNumber ? "text-green-400" : "text-red-400"}`}>
+                {contextFormData.phoneNumber || "Missing"}
+              </span>
+            </div>
+          </div>
+          
+          {showDebugInfo && (
+            <div className="mt-2 text-xs">
+              <details>
+                <summary className="cursor-pointer text-slate-300 hover:text-slate-200">Full Context Data</summary>
+                <pre className="mt-2 p-2 bg-black/30 rounded text-xs text-slate-400 overflow-auto max-h-40">
+                  {JSON.stringify(contextFormData, null, 2)}
+                </pre>
+              </details>
+            </div>
+          )}
+        </div>
+        
         <div>
           <label className="block text-slate-400 mb-2">
             Aadhar Number <span className="text-red-500">*</span>

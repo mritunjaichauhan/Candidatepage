@@ -83,6 +83,9 @@ export const submitCandidate = async (candidateData) => {
       throw new Error('Cannot connect to the server. Please check if it is running.');
     }
 
+    // Log the data being sent to help with debugging
+    console.log('Submitting candidate data:', candidateData);
+
     return await fetchWithTimeout(`${API_URL}/candidates`, {
       method: 'POST',
       headers: {

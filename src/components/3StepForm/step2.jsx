@@ -5,24 +5,32 @@ import JobSelectionForm from "./JobSelection";
 import { useFormContext } from "@/ContextProvider/FormProvider";
 
 const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
+  const { contextFormData, setContextFormData } = useFormContext();
+  console.log("[Step2] Initial context data:", contextFormData);
+  
   const [formData, setFormData] = useState({
-    age: "",
-    workSchedule: "",
-    jobCategories: [],
-    education: "",
-    inFieldExperience: "",
-    experience: "",
-    expectedCtc: "",
-    openToGig: true,
-    openToFullTime: false,
-    pastRoles: [],
-    hasLicense: false,
-    licenseTypes: [],
-    additionalVehicle: "",
-    additionalVehicleType: "",
-    commercialVehicleType: "", // Add commercial vehicle type
-    ageError: "", // Add ageError to state
+    age: contextFormData.age || "",
+    workSchedule: Array.isArray(contextFormData.workSchedule) ? contextFormData.workSchedule : [],
+    jobCategories: contextFormData.jobCategories || [],
+    education: contextFormData.education || "",
+    inFieldExperience: contextFormData.inFieldExperience || "",
+    experience: contextFormData.experience || "",
+    expectedCtc: contextFormData.expectedCtc || "",
+    openToGig: contextFormData.openToGig !== undefined ? contextFormData.openToGig : true,
+    openToFullTime: contextFormData.openToFullTime || false,
+    pastRoles: contextFormData.pastRoles || [],
+    hasLicense: contextFormData.hasLicense || false,
+    licenseTypes: Array.isArray(contextFormData.licenseTypes) ? contextFormData.licenseTypes : [],
+    additionalVehicle: contextFormData.additionalVehicle || "",
+    additionalVehicleType: contextFormData.additionalVehicleType || "",
+    commercialVehicleType: contextFormData.commercialVehicleType || "", 
+    ageError: "", 
   });
+
+  // Log form data updates
+  useEffect(() => {
+    console.log("[Step2] Form data updated:", formData);
+  }, [formData]);
 
   // Common blue collar job categories
   const jobCategories = [
@@ -90,7 +98,6 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
 
   const [showGigTooltip, setShowGigTooltip] = useState(false);
   const [showFullTimeTooltip, setShowFullTimeTooltip] = useState(false);
-  const { contextFormData, setContextFormData } = useFormContext();
   const [selectedBlueCollarManagement, setSelectedBlueCollarManagement] = useState(false);
 
   const shouldShowCtc = () => {
@@ -452,15 +459,20 @@ const RegistrationStep2 = ({ onNextStep, onPreviousStep }) => {
               onNextStep(3);
               setContextFormData((prev) => ({
                 ...prev,
-                fullName: formData.fullName,
-                phoneNumber: formData.phoneNumber,
-                phoneVerified: formData.phoneVerified,
-                email: formData.email,
-                emailVerified: formData.emailVerified,
-                primaryCity: formData.primaryCity,
-                additionalCities: formData.additionalCities,
-                workRadius: formData.workRadius,
-                inFieldExperience: formData.inFieldExperience
+                // Only update fields that exist in step2's formData
+                age: formData.age,
+                workSchedule: formData.workSchedule,
+                education: formData.education,
+                inFieldExperience: formData.inFieldExperience,
+                experience: formData.experience,
+                expectedCtc: formData.expectedCtc,
+                openToGig: formData.openToGig,
+                openToFullTime: formData.openToFullTime,
+                hasLicense: formData.hasLicense,
+                licenseTypes: formData.licenseTypes,
+                additionalVehicle: formData.additionalVehicle,
+                additionalVehicleType: formData.additionalVehicleType,
+                commercialVehicleType: formData.commercialVehicleType
               }));
             }}
             disabled={!isFormValid()}
