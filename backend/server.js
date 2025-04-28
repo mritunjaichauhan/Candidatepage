@@ -1,119 +1,102 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const app = require('./app');
+const db = require('./config/database');
+const influencerRoutes = require('./routes/influencerRoutes');
 
-// Initialize express app
-const app = express();
 const PORT = process.env.PORT || 8080;
-
-// Simple CORS configuration
-app.use(cors());
-
-// Body parser middleware
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: true }));
 
 // Add server health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
 });
 
-// Connect to SQLite database
-const dbPath = path.resolve(__dirname, 'database.sqlite');
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('Error opening database', err.message);
-  } else {
-    console.log('Connected to the SQLite database.');
+// Create tables if they don't exist
+db.serialize(() => {
+  // First create the jobs table
+  db.run(`CREATE TABLE IF NOT EXISTS jobs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`, (err) => {
+    if (err) {
+      console.error('Error creating jobs table:', err.message);
+    } else {
+      // After jobs table is created, insert sample jobs
+      db.run(`INSERT OR IGNORE INTO jobs (id, title, description) VALUES
+        (1, 'Frontend Developer', 'React, Vue.js expertise required'),
+        (2, 'Backend Developer', 'Node.js, Express, and database experience'),
+        (3, 'Full Stack Developer', 'End-to-end web development skills')
+      `, (err) => {
+        if (err) {
+          console.error('Error inserting sample jobs:', err.message);
+        } else {
+          console.log('Sample jobs inserted successfully');
+        }
+      });
+    }
+  });
+
+  // Then create the candidates table
+  db.run(`CREATE TABLE IF NOT EXISTS candidates (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    phone TEXT,
+    job_id INTEGER,
+    resume_path TEXT,
+    status TEXT DEFAULT 'new',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    // Create tables if they don't exist - Make sure tables are created sequentially
-    db.serialize(() => {
-      // First create the jobs table
-      db.run(`CREATE TABLE IF NOT EXISTS jobs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        description TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )`, (err) => {
-        if (err) {
-          console.error('Error creating jobs table:', err.message);
-        } else {
-          // After jobs table is created, insert sample jobs
-          db.run(`INSERT OR IGNORE INTO jobs (id, title, description) VALUES
-            (1, 'Frontend Developer', 'React, Vue.js expertise required'),
-            (2, 'Backend Developer', 'Node.js, Express, and database experience'),
-            (3, 'Full Stack Developer', 'End-to-end web development skills')
-          `, (err) => {
-            if (err) {
-              console.error('Error inserting sample jobs:', err.message);
-            } else {
-              console.log('Sample jobs inserted successfully');
-            }
-          });
-        }
-      });
+    /* Step 1 Fields */
+    full_name TEXT,
+    phone_number TEXT,
+    phone_verified BOOLEAN DEFAULT 0,
+    email_verified BOOLEAN DEFAULT 0,
+    primary_city TEXT,
+    additional_cities TEXT,
+    work_radius TEXT,
+    pincode TEXT,
+    open_to_relocate BOOLEAN DEFAULT 0,
+    calling_number TEXT,
+    
+    /* Step 2 Fields */
+    age INTEGER,
+    work_schedule TEXT,
+    education TEXT,
+    in_field_experience TEXT,
+    experience TEXT,
+    expected_ctc TEXT,
+    open_to_gig BOOLEAN DEFAULT 1,
+    open_to_full_time BOOLEAN DEFAULT 0,
+    has_license BOOLEAN DEFAULT 0,
+    license_types TEXT,
+    additional_vehicle TEXT,
+    additional_vehicle_type TEXT,
+    commercial_vehicle_type TEXT,
 
-      // Then create the candidates table that references jobs with all form fields
-      db.run(`CREATE TABLE IF NOT EXISTS candidates (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        phone TEXT,
-        job_id INTEGER,
-        resume_path TEXT,
-        status TEXT DEFAULT 'new',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        
-        /* Step 1 Fields */
-        full_name TEXT,
-        phone_number TEXT,
-        phone_verified BOOLEAN DEFAULT 0,
-        email_verified BOOLEAN DEFAULT 0,
-        primary_city TEXT,
-        additional_cities TEXT,
-        work_radius TEXT,
-        pincode TEXT,
-        open_to_relocate BOOLEAN DEFAULT 0,
-        calling_number TEXT,
-        
-        /* Step 2 Fields */
-        age INTEGER,
-        work_schedule TEXT,
-        education TEXT,
-        in_field_experience TEXT,
-        experience TEXT,
-        expected_ctc TEXT,
-        open_to_gig BOOLEAN DEFAULT 1,
-        open_to_full_time BOOLEAN DEFAULT 0,
-        has_license BOOLEAN DEFAULT 0,
-        license_types TEXT,
-        additional_vehicle TEXT,
-        additional_vehicle_type TEXT,
-        commercial_vehicle_type TEXT,
-
-        /* Step 3 Fields */
-        languages TEXT,
-        pan TEXT,
-        pancard TEXT,
-        aadhar TEXT,
-        aadharcard TEXT,
-        agree_terms BOOLEAN DEFAULT 0,
-        
-        /* Additional Information JSON field */
-        additional_info TEXT,
-        
-        FOREIGN KEY (job_id) REFERENCES jobs(id)
-      )`, (err) => {
-        if (err) {
-          console.error('Error creating candidates table:', err.message);
-        } else {
-          console.log('Candidates table created successfully');
-        }
-      });
-    });
-  }
+    /* Step 3 Fields */
+    languages TEXT,
+    pan TEXT,
+    pancard TEXT,
+    aadhar TEXT,
+    aadharcard TEXT,
+    agree_terms BOOLEAN DEFAULT 0,
+    
+    /* Additional Information JSON field */
+    additional_info TEXT,
+    
+    FOREIGN KEY (job_id) REFERENCES jobs(id)
+  )`, (err) => {
+    if (err) {
+      console.error('Error creating candidates table:', err.message);
+    } else {
+      console.log('Candidates table created successfully');
+    }
+  });
 });
 
 // API Routes
@@ -262,6 +245,9 @@ app.get('/api/candidates', (req, res) => {
     res.json(rows);
   });
 });
+
+// Routes
+app.use('/api/influencers', influencerRoutes);
 
 // Start server
 app.listen(PORT, () => {
