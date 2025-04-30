@@ -1,5 +1,5 @@
 // API Service for database operations
-const API_URL = 'http://localhost:8080/api'; // Updated from 5000 to 8080
+const API_URL = '/api'; // Updated to use relative path which will go through the Vite proxy
 
 // Optional: Set a timeout for all fetch requests (in milliseconds)
 const FETCH_TIMEOUT = 10000;
@@ -12,6 +12,7 @@ async function fetchWithTimeout(url, options = {}) {
   const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
   
   try {
+    console.log(`[API] Making request to: ${url}`);
     const response = await fetch(url, {
       ...options,
       signal: controller.signal,
@@ -49,16 +50,28 @@ async function fetchWithTimeout(url, options = {}) {
 }
 
 /**
- * Check if the server is healthy
+ * Check if the server is healthy with retries
  */
-export const checkServerHealth = async () => {
-  try {
-    const response = await fetchWithTimeout(`${API_URL}/health`);
-    return response.status === 'ok';
-  } catch (error) {
-    console.error('Server health check failed:', error);
-    return false;
+export const checkServerHealth = async (retries = 3) => {
+  let lastError = null;
+  
+  for (let i = 0; i < retries; i++) {
+    try {
+      console.log(`[API] Attempting health check (attempt ${i + 1}/${retries})`);
+      const response = await fetchWithTimeout(`${API_URL}/health`);
+      console.log('[API] Health check response:', response);
+      return response.status === 'ok';
+    } catch (error) {
+      console.error(`[API] Health check attempt ${i + 1} failed:`, error);
+      lastError = error;
+      // Wait for a short time before retrying
+      if (i < retries - 1) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+    }
   }
+  
+  throw lastError || new Error('Server health check failed after multiple attempts');
 };
 
 /**

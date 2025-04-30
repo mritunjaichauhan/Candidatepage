@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useParams } from "react-router-dom"
 import { CheckCircle, XCircle, Loader, ChevronLeft, X } from "lucide-react"
 import InfiniteMarquee from "../InfiniteMarquee/InfiniteMarquee.jsx"
 import { ParticleCanvas } from "../Intro/IntroAnimation.jsx"
@@ -12,6 +13,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { submitCandidate } from "@/lib/api-service" // Import the API service
 
 const CandidateForm = ({ onFormSubmit }) => {
+  const { influencerCode } = useParams()
   // Form state management
   const [currentStep, setCurrentStep] = useState(1)
   const [isLoading, setIsLoading] = useState(false)
@@ -29,6 +31,7 @@ const CandidateForm = ({ onFormSubmit }) => {
     aadhar: "", // Aadhar number
     aadharcard: "",
     agreeTerms: false, // Terms and conditions checkbox
+    influencerCode: influencerCode || null // Add influencer code to form data
   })
 
   // Confetti effect when showing success modal
@@ -245,78 +248,86 @@ const CandidateForm = ({ onFormSubmit }) => {
     setSubmissionError("")
     
     try {
+      // Include influencer code in the submission
+      const submissionData = {
+        ...contextFormData,
+        ...formData,
+        influencerCode: influencerCode || null
+      }
+
       // Log complete context data for debugging
-      console.log("[CandidateForm] Complete context data before submission:", contextFormData);
+      console.log("[CandidateForm] Complete context data before submission:", submissionData);
       
       // Make sure step 3 fields are correctly added to context
       setContextFormData(prev => ({
         ...prev,
-        aadhar: formData.aadhar,
-        agreeTerms: formData.agreeTerms,
-        languages: formData.languages,
-        pan: formData.pan,
-        pancard: formData.pancard,
-        aadharcard: formData.aadharcard
+        aadhar: submissionData.aadhar,
+        agreeTerms: submissionData.agreeTerms,
+        languages: submissionData.languages,
+        pan: submissionData.pan,
+        pancard: submissionData.pancard,
+        aadharcard: submissionData.aadharcard
       }));
 
       // Prepare all form fields for submission - use direct constants to ensure proper values
       const candidateData = {
         // Required fields - use direct assignments for critical fields
-        name: String(contextFormData.fullName).trim(),
-        email: String(contextFormData.email).trim(),
-        phone: String(contextFormData.phoneNumber || "").trim(),
-        job_id: contextFormData.jobId || 1,
-        resume_path: contextFormData.resume ? contextFormData.resume.name : null,
+        name: String(submissionData.fullName).trim(),
+        email: String(submissionData.email).trim(),
+        phone: String(submissionData.phoneNumber || "").trim(),
+        job_id: submissionData.jobId || 1,
+        resume_path: submissionData.resume ? submissionData.resume.name : null,
+        influencerCode: influencerCode, // Add the influencer code from URL params
         
         // Step 1 fields
-        full_name: String(contextFormData.fullName).trim(),
-        phone_number: String(contextFormData.phoneNumber || "").trim(),
-        phone_verified: Boolean(contextFormData.phoneVerified),
-        email_verified: Boolean(contextFormData.emailVerified),
-        primary_city: String(contextFormData.primaryCity || "").trim(),
-        additional_cities: Array.isArray(contextFormData.additionalCities) ? contextFormData.additionalCities : [],
-        work_radius: String(contextFormData.workRadius || "").trim(),
-        pincode: String(contextFormData.pincode || "").trim(),
-        open_to_relocate: Boolean(contextFormData.openToRelocate),
-        calling_number: String(contextFormData.callingNumber || contextFormData.phoneNumber || "").trim(),
+        full_name: String(submissionData.fullName).trim(),
+        phone_number: String(submissionData.phoneNumber || "").trim(),
+        phone_verified: Boolean(submissionData.phoneVerified),
+        email_verified: Boolean(submissionData.emailVerified),
+        primary_city: String(submissionData.primaryCity || "").trim(),
+        additional_cities: Array.isArray(submissionData.additionalCities) ? submissionData.additionalCities : [],
+        work_radius: String(submissionData.workRadius || "").trim(),
+        pincode: String(submissionData.pincode || "").trim(),
+        open_to_relocate: Boolean(submissionData.openToRelocate),
+        calling_number: String(submissionData.callingNumber || submissionData.phoneNumber || "").trim(),
         
         // Step 2 fields
-        age: String(contextFormData.age || "").trim(),
-        work_schedule: Array.isArray(contextFormData.workSchedule) 
-          ? contextFormData.workSchedule.join(',') 
-          : String(contextFormData.workSchedule || "").trim(),
-        education: String(contextFormData.education || "").trim(),
-        in_field_experience: String(contextFormData.inFieldExperience || "").trim(),
-        experience: String(contextFormData.experience || "").trim(),
-        expected_ctc: String(contextFormData.expectedCtc || "").trim(),
-        open_to_gig: Boolean(contextFormData.openToGig !== undefined ? contextFormData.openToGig : true),
-        open_to_full_time: Boolean(contextFormData.openToFullTime),
-        has_license: Boolean(contextFormData.hasLicense),
-        license_types: Array.isArray(contextFormData.licenseTypes) ? contextFormData.licenseTypes : [],
-        additional_vehicle: String(contextFormData.additionalVehicle || "").trim(),
-        additional_vehicle_type: String(contextFormData.additionalVehicleType || "").trim(),
-        commercial_vehicle_type: String(contextFormData.commercialVehicleType || "").trim(),
+        age: String(submissionData.age || "").trim(),
+        work_schedule: Array.isArray(submissionData.workSchedule) 
+          ? submissionData.workSchedule.join(',') 
+          : String(submissionData.workSchedule || "").trim(),
+        education: String(submissionData.education || "").trim(),
+        in_field_experience: String(submissionData.inFieldExperience || "").trim(),
+        experience: String(submissionData.experience || "").trim(),
+        expected_ctc: String(submissionData.expectedCtc || "").trim(),
+        open_to_gig: Boolean(submissionData.openToGig !== undefined ? submissionData.openToGig : true),
+        open_to_full_time: Boolean(submissionData.openToFullTime),
+        has_license: Boolean(submissionData.hasLicense),
+        license_types: Array.isArray(submissionData.licenseTypes) ? submissionData.licenseTypes : [],
+        additional_vehicle: String(submissionData.additionalVehicle || "").trim(),
+        additional_vehicle_type: String(submissionData.additionalVehicleType || "").trim(),
+        commercial_vehicle_type: String(submissionData.commercialVehicleType || "").trim(),
         
         // Step 3 fields - use formData directly since we just updated context
-        languages: Array.isArray(formData.languages) ? formData.languages : [],
-        pan: String(formData.pan || "").trim(),
-        pancard: String(formData.pancard || "").trim(),
-        aadhar: String(formData.aadhar || "").trim(),
-        aadharcard: String(formData.aadharcard || "").trim(),
-        agree_terms: Boolean(formData.agreeTerms),
+        languages: Array.isArray(submissionData.languages) ? submissionData.languages : [],
+        pan: String(submissionData.pan || "").trim(),
+        pancard: String(submissionData.pancard || "").trim(),
+        aadhar: String(submissionData.aadhar || "").trim(),
+        aadharcard: String(submissionData.aadharcard || "").trim(),
+        agree_terms: Boolean(submissionData.agreeTerms),
         
         // Additional JSON data field for complex data structures
         additional_info: JSON.stringify({
-          aadhar: formData.aadhar || "",
-          roles: contextFormData.roles || [],
-          languages: contextFormData.languages || [],
-          workSetting: contextFormData.workSetting || [],
-          teachingLevel: contextFormData.teachingLevel || [],
-          subject: contextFormData.subject || [],
-          certification: contextFormData.certification || "",
-          certificateLinks: contextFormData.certificateLinks || [],
-          jobCategories: contextFormData.jobCategories || [],
-          pastRoles: contextFormData.pastRoles || []
+          aadhar: submissionData.aadhar || "",
+          roles: submissionData.roles || [],
+          languages: submissionData.languages || [],
+          workSetting: submissionData.workSetting || [],
+          teachingLevel: submissionData.teachingLevel || [],
+          subject: submissionData.subject || [],
+          certification: submissionData.certification || "",
+          certificateLinks: submissionData.certificateLinks || [],
+          jobCategories: submissionData.jobCategories || [],
+          pastRoles: submissionData.pastRoles || []
         })
       };
       
