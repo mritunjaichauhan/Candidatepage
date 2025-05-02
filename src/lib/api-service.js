@@ -123,3 +123,57 @@ export const fetchCandidates = async () => {
     throw error;
   }
 };
+
+/**
+ * Fetch all influencers from the database
+ */
+export const fetchInfluencers = async () => {
+  try {
+    return await fetchWithTimeout(`${API_URL}/influencers`);
+  } catch (error) {
+    console.error('Error fetching influencers:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch a specific influencer by their unique code
+ */
+export const fetchInfluencerByCode = async (code) => {
+  try {
+    return await fetchWithTimeout(`${API_URL}/influencers/${code}`);
+  } catch (error) {
+    console.error(`Error fetching influencer with code ${code}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Fetch all referrals for a specific influencer
+ */
+export const fetchInfluencerReferrals = async (code) => {
+  try {
+    return await fetchWithTimeout(`${API_URL}/influencers/${code}/referrals`);
+  } catch (error) {
+    console.error(`Error fetching referrals for influencer ${code}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Create a new influencer
+ */
+export const createInfluencer = async (influencerData) => {
+  try {
+    return await fetchWithTimeout(`${API_URL}/influencers`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(influencerData),
+    });
+  } catch (error) {
+    console.error('Error creating influencer:', error);
+    throw error;
+  }
+};

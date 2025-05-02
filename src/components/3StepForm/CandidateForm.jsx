@@ -468,6 +468,14 @@ const CandidateForm = ({ onFormSubmit }) => {
                 {contextFormData.phoneNumber || "Missing"}
               </span>
             </div>
+            {influencerCode && (
+              <div className="flex justify-between">
+                <span className="text-xs text-slate-400">Referral Code:</span>
+                <span className="text-xs text-cyan-400 font-semibold">
+                  {influencerCode}
+                </span>
+              </div>
+            )}
           </div>
           
           {showDebugInfo && (
@@ -481,6 +489,18 @@ const CandidateForm = ({ onFormSubmit }) => {
             </div>
           )}
         </div>
+        
+        {/* Referral Notice */}
+        {influencerCode && (
+          <div className="bg-cyan-400/10 border border-cyan-400/30 rounded-lg p-4 mb-4">
+            <h4 className="text-sm font-medium text-cyan-400 flex items-center gap-2">
+              <CheckCircle className="w-4 h-4" /> Referred by Influencer
+            </h4>
+            <p className="text-xs text-slate-300 mt-1">
+              Your application includes referral code: <span className="font-mono font-bold text-cyan-400">{influencerCode}</span>
+            </p>
+          </div>
+        )}
         
         <div>
           <label className="block text-slate-400 mb-2">

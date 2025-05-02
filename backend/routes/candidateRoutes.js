@@ -10,7 +10,7 @@ router.post('/', async (req, res) => {
             name, 
             email, 
             phone,
-            referral_code, // Added referral code
+            influencerCode, // Use influencerCode from the form
             job_id, 
             resume_path, 
             additional_info,
@@ -52,6 +52,8 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: "Name and email are required" });
         }
 
+        console.log('Received influencer code:', influencerCode);
+
         // Prepare fields for database
         const additionalCitiesString = Array.isArray(additional_cities) ? JSON.stringify(additional_cities) : additional_cities;
         const licenseTypesString = Array.isArray(license_types) ? JSON.stringify(license_types) : license_types;
@@ -69,8 +71,8 @@ router.post('/', async (req, res) => {
                 age, work_schedule, education, in_field_experience, experience, expected_ctc,
                 open_to_gig, open_to_full_time, has_license, license_types, additional_vehicle,
                 additional_vehicle_type, commercial_vehicle_type, languages, pan, pancard,
-                aadhar, aadharcard, agree_terms
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                aadhar, aadharcard, agree_terms, referral_code
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING id
         `;
 
@@ -104,17 +106,41 @@ router.post('/', async (req, res) => {
             pancard,
             aadhar,
             aadharcard,
-            agree_terms ? 1 : 0
+            agree_terms ? 1 : 0,
+            influencerCode // Store the influencer code directly
         ]);
 
-        // If there's a referral code, create the referral link
-        if (referral_code) {
-            const influencer = await Influencer.findByUniqueCode(referral_code);
-            if (influencer) {
-                await db.query(`
-                    INSERT INTO influencer_referrals (influencer_id, candidate_id)
-                    VALUES (?, ?)
-                `, [influencer.id, candidate.id]);
+        // If there's an influencer code, create the referral relationship and increment the count
+        if (influencerCode) {
+            console.log(`Processing referral for influencer code: ${influencerCode}`);
+            
+            try {
+                // Get the influencer by code
+                const influencer = await Influencer.findByUniqueCode(influencerCode);
+                
+                if (influencer) {
+                    console.log(`Found influencer with ID: ${influencer.id}`);
+                    
+                    // Insert into the junction table to create the relationship
+                    await db.query(`
+                        INSERT INTO influencer_referrals (influencer_id, candidate_id)
+                        VALUES (?, ?)
+                    `, [influencer.id, candidate.id]);
+                    
+                    // Update the referral count
+                    await db.query(`
+                        UPDATE influencers 
+                        SET referral_count = referral_count + 1 
+                        WHERE id = ?
+                    `, [influencer.id]);
+                    
+                    console.log(`Updated referral count for influencer ${influencer.id}`);
+                } else {
+                    console.log(`No influencer found with code: ${influencerCode}`);
+                }
+            } catch (referralError) {
+                console.error('Error processing referral:', referralError);
+                // Continue with the transaction even if referral processing fails
             }
         }
 
@@ -122,7 +148,8 @@ router.post('/', async (req, res) => {
         
         res.status(201).json({
             message: "Candidate added successfully",
-            candidateId: candidate.id
+            candidateId: candidate.id,
+            referralCode: influencerCode || null
         });
     } catch (error) {
         await db.query('ROLLBACK');

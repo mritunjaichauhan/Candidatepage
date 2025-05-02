@@ -10,6 +10,7 @@ import CandidateForm from "./components/3StepForm/CandidateForm";
 import DatabaseTest from "./components/DatabaseTest"; // Import the database test component
 import CreateInfluencer from "./components/CreateInfluencer";
 import InfluencerList from "./components/InfluencerList"; // Import the InfluencerList component
+import InfluencerDetails from "./components/InfluencerDetails"; // Import the InfluencerDetails component
 
 // Function to clear all browser storage
 const clearBrowserCache = () => {
@@ -52,6 +53,7 @@ function App() {
           <Route path="/profiledashboard" element={<ProfileDashboard />} />
           <Route path="/create-influencer" element={<CreateInfluencer />} />
           <Route path="/influencers" element={<InfluencerList />} />
+          <Route path="/influencer/:code" element={<InfluencerDetails />} />
           <Route path="/:influencerCode" element={<CandidateForm />} />
           {/* Just some for testing */}
           <Route path="/cand" element={<CandidateForm />} />

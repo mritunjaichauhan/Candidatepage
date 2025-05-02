@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import {
   Box,
   Container,
@@ -16,10 +15,12 @@ import {
   Alert,
   IconButton,
   TextField,
-  InputAdornment
+  InputAdornment,
+  Stack
 } from '@mui/material';
-import { Search, ContentCopy, Refresh } from '@mui/icons-material';
+import { Search, ContentCopy, Refresh, Visibility } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
+import { fetchInfluencers } from '../lib/api-service';
 
 const InfluencerList = () => {
   const [influencers, setInfluencers] = useState([]);
@@ -29,15 +30,15 @@ const InfluencerList = () => {
   const [copiedCode, setCopiedCode] = useState(null);
   
   // Function to fetch influencers from the API
-  const fetchInfluencers = async () => {
+  const fetchInfluencerData = async () => {
     setLoading(true);
     setError('');
     
     try {
-      const response = await axios.get('http://localhost:8080/api/influencers');
-      setInfluencers(response.data);
+      const data = await fetchInfluencers();
+      setInfluencers(data);
     } catch (err) {
-      setError('Failed to fetch influencers: ' + (err.response?.data?.error || err.message));
+      setError('Failed to fetch influencers: ' + err.message);
       console.error('Error fetching influencers:', err);
     } finally {
       setLoading(false);
@@ -83,7 +84,7 @@ const InfluencerList = () => {
   
   // Fetch influencers on component mount
   useEffect(() => {
-    fetchInfluencers();
+    fetchInfluencerData();
   }, []);
   
   return (
@@ -107,7 +108,7 @@ const InfluencerList = () => {
             <Button 
               variant="outlined"
               startIcon={<Refresh />}
-              onClick={fetchInfluencers}
+              onClick={fetchInfluencerData}
               disabled={loading}
             >
               Refresh
@@ -190,14 +191,26 @@ const InfluencerList = () => {
                       <TableCell>{influencer.referral_count}</TableCell>
                       <TableCell>{new Date(influencer.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>
-                        <Button 
-                          size="small" 
-                          variant="outlined"
-                          onClick={() => copyReferralLink(influencer.unique_code)}
-                          color={copiedCode === `link-${influencer.unique_code}` ? 'success' : 'primary'}
-                        >
-                          {copiedCode === `link-${influencer.unique_code}` ? 'Copied!' : 'Copy Link'}
-                        </Button>
+                        <Stack direction="row" spacing={1}>
+                          <Button 
+                            size="small" 
+                            variant="outlined"
+                            onClick={() => copyReferralLink(influencer.unique_code)}
+                            color={copiedCode === `link-${influencer.unique_code}` ? 'success' : 'primary'}
+                          >
+                            {copiedCode === `link-${influencer.unique_code}` ? 'Copied!' : 'Copy Link'}
+                          </Button>
+                          <Button
+                            size="small"
+                            variant="contained"
+                            color="secondary"
+                            component={Link}
+                            to={`/influencer/${influencer.unique_code}`}
+                            startIcon={<Visibility />}
+                          >
+                            View Details
+                          </Button>
+                        </Stack>
                       </TableCell>
                     </TableRow>
                   ))}
