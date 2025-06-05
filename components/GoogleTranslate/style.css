@@ -1,0 +1,125 @@
+/* Reset and base styles */
+.google-translate-wrapper {
+  display: inline-block;
+  position: relative;
+  min-height: 32px;
+  z-index: 1000;
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* Hide original Google Translate element */
+.hidden-translate-element {
+  position: fixed !important;
+  visibility: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  border: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  left: -9999px !important;
+  opacity: 0;
+}
+
+/* Custom select styling */
+.custom-language-select {
+  appearance: none;
+  background-color: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 32px 8px 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #1f2937;
+  cursor: pointer;
+  min-width: 160px;
+  transition: all 0.2s;
+  background-position: right 8px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+}
+
+.custom-language-select:hover {
+  border-color: #94a3b8;
+  background-color: #f8fafc;
+}
+
+.custom-language-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+/* Loading state */
+.translate-loader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  color: #666;
+}
+
+/* Hide all Google Translate elements */
+.goog-te-banner-frame,
+.goog-te-balloon-frame,
+.goog-te-gadget-simple,
+.goog-te-menu-frame,
+.goog-te-gadget-icon,
+.goog-te-spinner,
+.goog-te-spinner-pos,
+.goog-tooltip,
+.goog-tooltip:hover,
+.goog-logo-link,
+.goog-logo-link:link,
+.goog-logo-link:visited,
+.goog-logo-link:hover,
+.goog-logo-link:active {
+  display: none !important;
+}
+
+/* Remove Google Translate's top spacing */
+body {
+  top: 0 !important;
+  position: static !important;
+}
+
+/* Hide skiptranslate class */
+.skiptranslate,
+.goog-te-gadget {
+  font-size: 0px !important;
+}
+
+/* Additional safety measures */
+iframe.goog-te-banner-frame,
+iframe[name="google_translation_frame"],
+.goog-te-balloon-frame,
+#goog-gt-tt,
+.goog-te-balloon-frame {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* Keep translated text visible */
+body.translated-ltr,
+.translated-ltr,
+.translated-rtl {
+  top: 0 !important;
+  visibility: visible !important;
+  min-height: 100vh !important;
+}
+
+/* Ensure translated content appears correctly */
+.goog-text-highlight {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Fix any spacing issues */
+.goog-te-gadget-simple {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
