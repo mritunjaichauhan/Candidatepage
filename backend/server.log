@@ -1,0 +1,9 @@
+
+> backend@1.0.0 start
+> node server.js
+
+Server running on port 8080
+Server accessible at http://localhost:8080
+Connected to the SQLite database.
+Sample jobs inserted successfully
+Candidates table created successfully
