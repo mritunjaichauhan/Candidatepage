@@ -1,6 +1,6 @@
 name = "candidatepage"
 compatibility_date = "2024-12-23"
-main = "functions/index.js"
+main = "./worker/index.ts"
 
 [assets]
 directory = "./dist"
