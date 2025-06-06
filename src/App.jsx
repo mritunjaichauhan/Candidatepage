@@ -4,7 +4,6 @@ import GoogleTranslate from "./components/GoogleTranslate/GoogleTranslate";
 import Home from "./pages/home.jsx";
 import { FormProvider } from "./ContextProvider/FormProvider.jsx";
 import ProfileDashboard from "./pages/ProfileDashboard.jsx";
-import './i18n.js';
 import JobSelectionForm from "./components/3StepForm/JobSelection";
 import CandidateForm from "./components/3StepForm/CandidateForm";
 import DatabaseTest from "./components/DatabaseTest"; // Import the database test component
