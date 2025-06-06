@@ -1,8 +1,10 @@
 // API Service for database operations
-const API_URL = '/api'; // Updated to use relative path which will go through the Vite proxy
+// In development, this will go through Vite proxy to worker at localhost:5173
+// In production, this will hit the deployed Cloudflare Worker
+import { config, devLog, getApiUrl } from './config';
 
-// Optional: Set a timeout for all fetch requests (in milliseconds)
-const FETCH_TIMEOUT = 10000;
+const API_URL = config.api.baseUrl;
+const FETCH_TIMEOUT = config.api.timeout;
 
 /**
  * Enhanced fetch function with timeout and better error handling
@@ -12,7 +14,7 @@ async function fetchWithTimeout(url, options = {}) {
   const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
   
   try {
-    console.log(`[API] Making request to: ${url}`);
+    devLog(`Making request to: ${url}`);
     const response = await fetch(url, {
       ...options,
       signal: controller.signal,
@@ -30,7 +32,7 @@ async function fetchWithTimeout(url, options = {}) {
       const errorData = await response.json().catch(() => ({ 
         error: `HTTP error ${response.status}` 
       }));
-      throw new Error(errorData.error || `Server responded with status: ${response.status}`);
+      throw new Error(errorData.error || errorData.details || `Server responded with status: ${response.status}`);
     }
     
     return await response.json();
@@ -42,7 +44,7 @@ async function fetchWithTimeout(url, options = {}) {
     }
     
     if (error.message === 'Failed to fetch') {
-      throw new Error('Cannot connect to server. Please check if the backend is running on http://localhost:8080');
+      throw new Error('Cannot connect to server. Please check if the application is running (try: npm run dev)');
     }
     
     throw error;
@@ -97,7 +99,7 @@ export const submitCandidate = async (candidateData) => {
     }
 
     // Log the data being sent to help with debugging
-    console.log('Submitting candidate data:', candidateData);
+    devLog('Submitting candidate data:', candidateData);
 
     return await fetchWithTimeout(`${API_URL}/candidates`, {
       method: 'POST',

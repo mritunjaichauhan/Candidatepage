@@ -1,174 +1,146 @@
-# React + Vite
+# Candidate Page
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React application with Vite, Hono, and Cloudflare Workers for managing candidate and influencer data.
 
-Currently, two official plugins are available:
+## 🚀 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React Frontend** with modern UI components
+- **Cloudflare Workers** backend with Hono framework
+- **Database Integration** with Neon PostgreSQL via Drizzle ORM
+- **Full CRUD Operations** for candidates and influencers
+- **Referral System** linking candidates to influencers
+- **Validation** and error handling
+- **Auto-generated unique codes** for influencers
 
-# Candidate Dashboard - Hirecentive
+## 📋 API Endpoints
 
-A modern candidate dashboard application built with React, Vite, and TailwindCSS, deployable on Cloudflare Workers.
+### Health Check
+- `GET /api/health` - Check application and database status
 
-## 🛠️ Tech Stack
+### Candidates
+- `GET /api/candidates` - Get all candidates
+- `POST /api/candidates` - Create a new candidate
+- `GET /api/candidates/:id` - Get candidate by ID
+- `PUT /api/candidates/:id` - Update candidate
+- `DELETE /api/candidates/:id` - Delete candidate
 
-### Frontend
-- **React 19.0.0** - Modern React with latest features
-- **Vite 6.1.0** - Fast build tool and development server
-- **TailwindCSS 4.0.7** - Utility-first CSS framework
-- **TypeScript** - Type-safe JavaScript
+### Influencers
+- `GET /api/influencers` - Get all influencers
+- `POST /api/influencers` - Create a new influencer (with validation and auto-generated codes)
+- `GET /api/influencers/:id` - Get influencer by ID
+- `PUT /api/influencers/:id` - Update influencer
+- `DELETE /api/influencers/:id` - Delete influencer
+- `GET /api/influencers/validate/:code` - Validate influencer code
 
-### UI Libraries
-- **Material-UI** - React components library
-- **Radix UI** - Headless UI primitives
-- **shadcn/ui** - Modern React components
-- **Framer Motion** - Animation library
-- **Lucide React** - Icon library
-
-### Routing & State Management
-- **React Router DOM 7.2.0** - Client-side routing
-
-### Backend & API
-- **Express.js** - Backend API server
-- **CORS** - Cross-origin resource sharing
-- **Axios** - HTTP client
-
-### Deployment
-- **Cloudflare Workers** - Serverless deployment platform
-- **Wrangler** - Cloudflare CLI tool
-
-## 🚀 Getting Started
+## 🛠️ Development
 
 ### Prerequisites
-- Node.js (v18 or higher)
-- npm or pnpm
+- Node.js 18+
+- PostgreSQL database (Neon recommended)
 
-### Installation
+### Setup
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Copy `.dev.vars.example` to `.dev.vars` and configure your database URL
+4. Run migrations: `npm run db:push`
+5. Start development server: `npm run dev`
 
-```bash
-# Clone the repository
-git clone <repository-url>
-cd candidatepage
+### Database Operations
+- `npm run db:generate` - Generate migration files
+- `npm run db:migrate` - Run migrations
+- `npm run db:push` - Push schema changes
+- `npm run db:studio` - Open Drizzle Studio
 
-# Install dependencies
-npm install
-# or
-pnpm install
-```
+## 🚀 Deployment
 
-### Development
-
-```bash
-# Start the frontend development server
-npm run dev
-
-# Start the backend API server (in a separate terminal)
-cd backend && npm run dev
-```
-
-The frontend will be available at `http://localhost:5173` and the backend at `http://localhost:8080`.
-
-### Building for Production
-
-```bash
-# Build the application
-npm run build
-```
-
-This creates a `dist` directory with production-ready files.
-
-### Preview Production Build
-
-```bash
-# Preview the production build locally
-npm run preview
-```
-
-## ☁️ Cloudflare Deployment
-
-This application is configured for deployment on Cloudflare Workers with static assets.
-
-### Deployment Commands
-
-```bash
-# Deploy to production
-npm run deploy
-
-# Deploy to staging environment
-npm run deploy:staging
-
-# Deploy to production environment
-npm run deploy:production
-```
-
-### Environment Configuration
-
-- **Local Development**: Configure variables in `.dev.vars`
-- **Production**: Set environment variables in the Cloudflare dashboard
-
-### Wrangler Configuration
-
-The project includes a `wrangler.toml` file with:
-- Static asset serving from `./dist`
-- Single-page application routing
-- Multiple environment support (staging/production)
-- Cloudflare Pages Functions for API routes
-
-## 📁 Project Structure
-
-```
-candidatepage/
-├── src/                    # React application source
-│   ├── components/         # React components
-│   ├── pages/             # Page components
-│   ├── lib/               # Utilities and libraries
-│   └── styles/            # CSS and styling
-├── backend/               # Express.js API server
-├── functions/             # Cloudflare Pages Functions
-├── public/                # Static assets
-├── dist/                  # Production build output
-├── wrangler.toml          # Cloudflare configuration
-├── .dev.vars              # Local environment variables
-└── package.json           # Dependencies and scripts
-```
-
-## 🔧 Configuration Files
-
-- `vite.config.js` - Vite build configuration
-- `tailwind.config.js` - TailwindCSS configuration
-- `wrangler.toml` - Cloudflare Workers configuration
-- `components.json` - shadcn/ui configuration
-
-## 🌐 Features
-
-- **Multi-step Forms** - Dynamic form components
-- **Responsive Design** - Mobile-first approach
-- **Google Translate Integration** - Real-time translation support
-- **Modern UI** - Beautiful and accessible components
-- **Type Safety** - Full TypeScript support
-- **Fast Development** - Hot module replacement
-- **Production Ready** - Optimized builds
-- **Serverless Deployment** - Cloudflare Workers
-
-## 📝 Scripts
-
-- `npm run dev` - Start development server
+### Build and Deploy
 - `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run deploy` - Deploy to Cloudflare
-- `npm run deploy:staging` - Deploy to staging
-- `npm run deploy:production` - Deploy to production
+- `npm run deploy` - Deploy to Cloudflare Workers
+- `npm run preview` - Preview production build locally
 
-## 🤝 Contributing
+## 🔧 Troubleshooting
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Run tests and linting
-5. Submit a pull request
+### Frontend Not Connecting to Backend
+If you see `net::ERR_CONNECTION_REFUSED` errors:
 
-## 📄 License
+1. **Check the development server**: Ensure `npm run dev` is running
+2. **Verify the port**: The application runs on `http://localhost:5173`
+3. **API configuration**: All API calls use relative paths (`/api/*`) which are handled by the Cloudflare Worker
+4. **Health check**: Visit `http://localhost:5173/api/health` to verify the backend is running
 
-This project is licensed under the MIT License.
+### Common Issues
+- ❌ **Hardcoded localhost:8080**: Fixed by using centralized API service
+- ❌ **Database connection errors**: Check your `.dev.vars` file has the correct `DATABASE_URL`
+- ❌ **CORS errors**: The application has proper CORS configuration
+- ✅ **Auto-generated unique codes**: Influencers get codes like "JOH4289" automatically
+
+### API Testing
+You can test the API endpoints directly:
+```bash
+# Health check
+curl http://localhost:5173/api/health
+
+# Create influencer
+curl -X POST http://localhost:5173/api/influencers \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Test User", "email": "test@example.com", "phone": "1234567890"}'
+
+# List influencers
+curl http://localhost:5173/api/influencers
+```
+
+## 📝 Recent Improvements
+
+### Influencer Creation Fix
+- ✅ **Fixed validation errors** - Now provides specific error messages for missing fields
+- ✅ **Auto-generation of unique codes** - Automatically creates unique codes if not provided
+- ✅ **Enhanced error handling** - Better database error detection and reporting
+- ✅ **Email validation** - Validates email format before processing
+- ✅ **Phone validation** - Basic phone number format validation
+- ✅ **Duplicate detection** - Checks for existing emails and unique codes
+- ✅ **Data sanitization** - Trims and normalizes input data
+- ✅ **Improved health check** - Now includes database connectivity status
+
+### Code Quality Improvements
+- 🔧 **Validation utilities** - Centralized validation functions
+- 🔧 **Response utilities** - Standardized API responses
+- 🔧 **Better TypeScript types** - Improved type safety
+- 🔧 **Error categorization** - Specific error types with appropriate HTTP status codes
+
+## 🗄️ Database Schema
+
+### Candidates Table
+- Personal information (name, email, phone)
+- Location preferences (city, radius, pincode)
+- Professional details (experience, education, CTC)
+- Vehicle and license information
+- Document references (PAN, Aadhar)
+- Referral tracking
+
+### Influencers Table
+- Basic information (name, email, phone)
+- Unique referral code
+- Referral count tracking
+
+### Referral Tracking
+- Links candidates to influencers
+- Tracks referral relationships
+- Maintains referral counts
+
+## 🔧 Configuration
+
+The application uses standard Cloudflare Workers configuration:
+- `wrangler.json` - Worker configuration
+- `vite.config.ts` - Build configuration
+- `drizzle.config.ts` - Database configuration
+- `.dev.vars` - Development environment variables
+
+For production, set environment variables in your Cloudflare dashboard.
+
+## 📚 Technology Stack
+
+- **Frontend**: React 19, TypeScript, Tailwind CSS, Shadcn/ui
+- **Backend**: Hono, Cloudflare Workers
+- **Database**: PostgreSQL (Neon), Drizzle ORM
+- **Build Tools**: Vite, TypeScript
+- **Deployment**: Cloudflare Workers

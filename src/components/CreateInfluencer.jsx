@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import {
   Box,
   Button,
@@ -11,6 +10,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { Link } from 'react-router-dom';
+import { createInfluencer } from '../lib/api-service';
 
 const CreateInfluencer = () => {
   const [formData, setFormData] = useState({
@@ -37,11 +37,11 @@ const CreateInfluencer = () => {
     setSuccess(null);
 
     try {
-      const response = await axios.post('http://localhost:8080/api/influencers', formData);
-      setSuccess(response.data);
+      const response = await createInfluencer(formData);
+      setSuccess(response);
       setFormData({ name: '', email: '', phone: '' }); // Reset form
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to create influencer');
+      setError(err.message || 'Failed to create influencer');
     } finally {
       setLoading(false);
     }
