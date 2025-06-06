@@ -28,7 +28,6 @@ A modern candidate dashboard application built with React, Vite, and TailwindCSS
 
 ### Routing & State Management
 - **React Router DOM 7.2.0** - Client-side routing
-- **React i18next** - Internationalization
 
 ### Backend & API
 - **Express.js** - Backend API server
@@ -145,7 +144,7 @@ candidatepage/
 
 - **Multi-step Forms** - Dynamic form components
 - **Responsive Design** - Mobile-first approach
-- **Internationalization** - Multi-language support
+- **Google Translate Integration** - Real-time translation support
 - **Modern UI** - Beautiful and accessible components
 - **Type Safety** - Full TypeScript support
 - **Fast Development** - Hot module replacement
