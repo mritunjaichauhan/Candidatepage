@@ -3,6 +3,7 @@ compatibility_date = "2024-12-23"
 main = "./worker/index.ts"
 
 [assets]
+directory = "./dist"
 not_found_handling = "single-page-application"
 
 [env.production]
